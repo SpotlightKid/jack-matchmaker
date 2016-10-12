@@ -80,9 +80,13 @@ class JackMatchmaker(object):
     def run(self):
         try:
             while True:
-                output, input = self.queue.get()
-                log.info("Connecting ports '%s' <-> '%s'.", output, input)
-                jacklib.connect(self.client, output, input)
+                try:
+                    output, input = self.queue.get(timeout=1)
+                except queue.Empty:
+                    pass
+                else:
+                    log.info("Connecting ports '%s' <-> '%s'.", output, input)
+                    jacklib.connect(self.client, output, input)
         finally:
             return self.close()
 
