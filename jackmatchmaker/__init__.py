@@ -26,7 +26,7 @@ def pairwise(iterable):
 
 
 class JackMatchmaker(object):
-    def __init__(self, patterns, name="jack-matchmake"):
+    def __init__(self, patterns, name="jack-matchmaker"):
         self.patterns = patterns
         log.debug("Patterns: %s", self.patterns)
         self.client = jacklib.client_open("jack-matchmaker", jacklib.JackNoStartServer, None)
