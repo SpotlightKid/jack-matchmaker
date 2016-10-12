@@ -805,7 +805,7 @@ def port_get_aliases(port):
     aliases = alias_type(" ".encode("utf-8") * name_size, " ".encode("utf-8") * name_size)
 
     ret = jacklib.jack_port_get_aliases(port, pointer(aliases))
-    return (ret, str(aliases[0], encoding="utf-8"), str(aliases[1], encoding="utf-8"))
+    return (ret, aliases[0].decode("utf-8"), aliases[1].decode("utf-8"))
 
 def port_request_monitor(port, onoff):
     return jacklib.jack_port_request_monitor(port, onoff)
