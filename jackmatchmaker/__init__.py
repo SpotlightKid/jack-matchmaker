@@ -7,7 +7,6 @@ import argparse
 import logging
 import re
 import sys
-import time
 
 try:
     import queue
@@ -89,6 +88,7 @@ class JackMatchmaker(object):
                     jacklib.connect(self.client, output, input)
         finally:
             return self.close()
+
 
 def main(args=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
