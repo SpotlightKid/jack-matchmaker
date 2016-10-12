@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import logging
 import re
+import sys
 import time
 
 try:
@@ -99,5 +100,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main(sys.argv[1:]) or 0)
