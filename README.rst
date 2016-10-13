@@ -34,8 +34,8 @@ Acknowledgements
 Cadence_ application.
 
 It was inspired by jack-autoconnect_, which basically does the same thing, but doesn't
-support port aliases. It's also written in C++, and therefore probably much faster and and less
-memory hungry. 
+support port aliases. It's also written in C++, and therefore probably much faster and less
+memory hungry.
 
 .. _cadence: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
 .. _jack-autoconnect: https://github.com/kripton/jack_autoconnect
