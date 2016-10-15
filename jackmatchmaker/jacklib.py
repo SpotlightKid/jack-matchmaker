@@ -19,6 +19,8 @@
 # ------------------------------------------------------------------------------------------------------------
 # Imports (Global)
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 from ctypes import *
 from sys import platform
 
@@ -1177,7 +1179,7 @@ def session_event_free(event):
 
 def client_get_uuid(client):
     if jacklib.jack_client_get_uuid:
-        return jacklib.jack_client_get_uuid(client)
+        return jacklib.jack_client_get_uuid(client).decode('utf-8')
     return None
 
 def session_notify(client, target, type_, path):
