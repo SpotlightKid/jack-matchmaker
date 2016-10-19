@@ -8,6 +8,8 @@ import logging
 import re
 import sys
 
+from itertools import chain
+
 try:
     import queue
 except ImportError:
@@ -23,6 +25,11 @@ def pairwise(iterable):
     """s -> (s0,s1), (s2,s3), (s4, s5), ..."""
     args = [iter(iterable)] * 2
     return zip(*args)
+
+
+def flatten(nestedlist):
+    """Flatten one level of nesting"""
+    return chain.from_iterable(nestedlist)
 
 
 class JackMatchmaker(object):
@@ -46,9 +53,9 @@ class JackMatchmaker(object):
         if action == 0:
             return
 
-        inputs = self.get_ports_and_aliases(jacklib.JackPortIsInput)
+        inputs = flatten(self.get_ports(jacklib.JackPortIsInput))
         log.debug("Inputs:\n%s", "\n".join(inputs))
-        outputs = self.get_ports_and_aliases(jacklib.JackPortIsOutput)
+        outputs = flatten(self.get_ports(jacklib.JackPortIsOutput))
         log.debug("Outputs:\n%s", "\n".join(outputs))
 
         for left, right in self.patterns:
@@ -64,33 +71,37 @@ class JackMatchmaker(object):
                             log.info("Found matching input port: %s.", input)
                             self.queue.put((output, input))
 
-    def get_ports_and_aliases(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
-        ports = []
+    def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
         for port_name in jacklib.get_ports(self.client, '', '', type_):
             if port_name is None:
                 break
 
             port_name = port_name.decode('utf-8')
-            ports.append(port_name)
 
             if include_aliases:
                 port = jacklib.port_by_name(self.client, port_name)
-                aliases = jacklib.port_get_aliases(port)
-                if aliases[0]:
-                    for i in range(aliases[0]):
-                        ports.append(aliases[i+1])
-
-        return ports
+                num_aliases, *aliases = jacklib.port_get_aliases(port)
+                yield [port_name] + list(aliases[:num_aliases])
+            else:
+                yield [port_name]
 
     def list_connections(self, include_aliases=True):
         raise NotImplementedError()
 
     def list_ports(self, include_aliases=True):
         print("Inputs:\n")
-        print("\n".join(self.get_ports_and_aliases(jacklib.JackPortIsInput, include_aliases)))
-        print('')
-        print("Outputs:\n")
-        print("\n".join(self.get_ports_and_aliases(jacklib.JackPortIsOutput, include_aliases)))
+        for input in self.get_ports(jacklib.JackPortIsInput, include_aliases):
+            print(input[0])
+
+            for alias in input[1:]:
+                print("    %s" % alias)
+
+        print("\nOutputs:\n")
+        for output in self.get_ports(jacklib.JackPortIsOutput, include_aliases):
+            print(output[0])
+
+            for alias in output[1:]:
+                print("    %s" % alias)
 
     def run(self):
         log.debug("Patterns: %s", self.patterns)
