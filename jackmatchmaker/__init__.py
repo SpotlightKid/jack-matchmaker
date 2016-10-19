@@ -107,6 +107,8 @@ class JackMatchmaker(object):
         log.debug("Patterns: %s", self.patterns)
         jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
         jacklib.activate(self.client)
+        # call on-connection callback once to connect existing clients
+        self.reg_callback('dummy', 1)
 
         while True:
             try:
