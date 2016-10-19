@@ -86,7 +86,7 @@ class JackMatchmaker(object):
                 yield [port_name]
 
     def list_connections(self, include_aliases=True):
-        raise NotImplementedError()
+        raise NotImplementedError("Feature not implemented yet.")
 
     def list_ports(self, include_aliases=True):
         print("Inputs:\n")
@@ -137,18 +137,17 @@ def main(args=None):
 
     try:
         matchmaker = JackMatchmaker(list(pairwise(args.patterns)))
-    except RuntimeError as exc:
-        return str(exc)
 
-    try:
         if args.list_ports:
             matchmaker.list_ports(include_aliases=args.aliases)
         elif args.list_connections:
             matchmaker.list_connections()
         else:
             matchmaker.run()
+    except Exception as exc:
+        return str(exc)
     finally:
-        return matchmaker.close()
+        matchmaker.close()
 
 
 if __name__ == '__main__':
