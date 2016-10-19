@@ -115,6 +115,8 @@ class JackMatchmaker(object):
                 output, input = self.queue.get(timeout=1)
             except queue.Empty:
                 pass
+            except KeyboardInterrupt:
+                return
             else:
                 log.info("Connecting ports '%s' <-> '%s'.", output, input)
                 jacklib.connect(self.client, output, input)
@@ -137,7 +139,10 @@ def main(args=None):
 
     try:
         matchmaker = JackMatchmaker(list(pairwise(args.patterns)))
+    except RuntimeError as exc:
+        return str(exc)
 
+    try:
         if args.list_ports:
             matchmaker.list_ports(include_aliases=args.aliases)
         elif args.list_connections:
