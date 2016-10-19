@@ -53,9 +53,9 @@ class JackMatchmaker(object):
         if action == 0:
             return
 
-        inputs = flatten(self.get_ports(jacklib.JackPortIsInput))
+        inputs = list(flatten(self.get_ports(jacklib.JackPortIsInput)))
         log.debug("Inputs:\n%s", "\n".join(inputs))
-        outputs = flatten(self.get_ports(jacklib.JackPortIsOutput))
+        outputs = list(flatten(self.get_ports(jacklib.JackPortIsOutput)))
         log.debug("Outputs:\n%s", "\n".join(outputs))
 
         for left, right in self.patterns:
