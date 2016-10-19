@@ -32,36 +32,37 @@ def get_jack_status_error_string(cStatus):
     if status == 0x0:
         return ""
 
-    errorString = ""
+    errorString = []
 
-    if status & jacklib.JackFailure:
-        errorString += "Overall operation failed;\n"
+    if status == jacklib.JackFailure:
+        # Only include this genereic message if no other error status is set
+        errorString.append("Overall operation failed")
     if status & jacklib.JackInvalidOption:
-        errorString += "The operation contained an invalid or unsupported option;\n"
+        errorString.append("The operation contained an invalid or unsupported option")
     if status & jacklib.JackNameNotUnique:
-        errorString += "The desired client name was not unique;\n"
+        errorString.append("The desired client name was not unique")
     if status & jacklib.JackServerStarted:
-        errorString += "The JACK server was started as a result of this operation;\n"
+        errorString.append("The JACK server was started as a result of this operation")
     if status & jacklib.JackServerFailed:
-        errorString += "Unable to connect to the JACK server;\n"
+        errorString.append("Unable to connect to the JACK server")
     if status & jacklib.JackServerError:
-        errorString += "Communication error with the JACK server;\n"
+        errorString.append("Communication error with the JACK server")
     if status & jacklib.JackNoSuchClient:
-        errorString += "Requested client does not exist;\n"
+        errorString.append("Requested client does not exist")
     if status & jacklib.JackLoadFailure:
-        errorString += "Unable to load internal client;\n"
+        errorString.append("Unable to load internal client")
     if status & jacklib.JackInitFailure:
-        errorString += "Unable to initialize client;\n"
+        errorString.append("Unable to initialize client")
     if status & jacklib.JackShmFailure:
-        errorString += "Unable to access shared memory;\n"
+        errorString.append("Unable to access shared memory")
     if status & jacklib.JackVersionError:
-        errorString += "Client's protocol version does not match;\n"
+        errorString.append("Client's protocol version does not match")
     if status & jacklib.JackBackendError:
-        errorString += "Backend Error;\n"
+        errorString.append("Backend Error")
     if status & jacklib.JackClientZombie:
-        errorString += "Client is being shutdown against its will;\n"
+        errorString.append("Client is being shutdown against its will")
 
-    return errorString.strip().rsplit(";", 1)[0] + "."
+    return ";\n".join(errorString) + "."
 
 # ------------------------------------------------------------------------------------------------------------
 # Convert C char** -> Python list
