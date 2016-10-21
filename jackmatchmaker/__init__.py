@@ -58,7 +58,7 @@ class JackMatchmaker(object):
     def add_patterns(self, ptn_output, ptn_input):
         try:
             ptn_output = re.compile(ptn_output)
-        except re.error:
+        except re.error as exc:
             log.error("Error in output port pattern '%s': %s", ptn_output, exc)
         else:
             self.patterns.append((ptn_output, ptn_input))
@@ -88,7 +88,7 @@ class JackMatchmaker(object):
 
                         try:
                             rx_input = re.compile(rx_input)
-                        except re.error:
+                        except re.error as exc:
                             log.error("Error in input port pattern '%s': %s", rx_input, exc)
                         else:
                             match_input = rx_input.match(input)
