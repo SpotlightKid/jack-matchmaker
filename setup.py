@@ -4,9 +4,11 @@
 from setuptools import setup
 
 
+exec(open('jackmatchmaker/version.py').read())
+
 setup(
     name='jack-matchmaker',
-    version="0.1.0",
+    version=__version__,  # noqa
     description="Auto-connect new JACK ports.",
     long_description=open('README.rst').read(),
     author="Christopher Arndt",

@@ -18,6 +18,8 @@ except ImportError:
 
 from . import jacklib
 from .jacklib_helpers import get_jack_status_error_string
+from .version import __version__  # noqa
+
 
 log = logging.getLogger("jack-matchmaker")
 
