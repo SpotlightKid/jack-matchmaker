@@ -8,6 +8,7 @@ import logging
 import re
 import sys
 
+from collections import defaultdict
 from itertools import chain
 
 try:
@@ -34,7 +35,10 @@ def flatten(nestedlist):
 
 class JackMatchmaker(object):
     def __init__(self, patterns, name="jack-matchmaker"):
-        self.patterns = patterns
+        self.patterns = []
+        for pair in patterns:
+            self.add_patterns(*pair)
+
         self.queue = queue.Queue()
         status = jacklib.jack_status_t()
         self.client = jacklib.client_open("jack-matchmaker", jacklib.JackNoStartServer, status)
@@ -49,6 +53,14 @@ class JackMatchmaker(object):
         jacklib.deactivate(self.client)
         return jacklib.client_close(self.client)
 
+    def add_patterns(self, ptn_output, ptn_input):
+        try:
+            ptn_output = re.compile(ptn_output)
+        except re.error:
+            log.error("Error in output port pattern '%s': %s", ptn_output, exc)
+        else:
+            self.patterns.append((ptn_output, ptn_input))
+
     def reg_callback(self, port_id, action, *args):
         if action == 0:
             return
@@ -58,18 +70,29 @@ class JackMatchmaker(object):
         outputs = list(flatten(self.get_ports(jacklib.JackPortIsOutput)))
         log.debug("Outputs:\n%s", "\n".join(outputs))
 
-        for left, right in self.patterns:
+        for ptn_output, ptn_input in self.patterns:
             for output in outputs:
-                log.debug("Checking output '%s' against pattern '%s'.", output, left)
-                match = re.match(left, output, re.I)
-                if match:
-                    log.info("Found matching output port: %s.", output)
+                log.debug("Checking output '%s' against pattern '%s'.", output, ptn_output)
+                match_output = ptn_output.match(output)
+                if match_output:
+                    log.debug("Found matching output port: %s.", output)
                     for input in inputs:
-                        log.debug("Checking input '%s' against pattern '%s'.", input, right)
-                        match = re.match(right, input, re.I)
-                        if match:
-                            log.info("Found matching input port: %s.", input)
-                            self.queue.put((output, input))
+                        # try to fill-in groups matches from output port
+                        # pattern into input port pattern
+                        subst = defaultdict(str, **match_output.groupdict())
+                        rx_input = ptn_input.format_map(subst)
+
+                        log.debug("Checking input '%s' against pattern '%s'.", input, ptn_input)
+
+                        try:
+                            rx_input = re.compile(rx_input)
+                        except re.error:
+                            log.error("Error in input port pattern '%s': %s", rx_input, exc)
+                        else:
+                            match_input = rx_input.match(input)
+                            if match_input:
+                                log.debug("Found matching input port: %s.", input)
+                                self.queue.put((output, input))
 
     def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
         for port_name in jacklib.get_ports(self.client, '', '', type_):

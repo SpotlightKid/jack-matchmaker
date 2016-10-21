@@ -30,6 +30,19 @@ Automatically connect the first two ports of Fluidsynth to the audio outs::
     jack-matchmaker "fluidsynth:l_01" "system:playback_1" \
                     "fluidsynth:r_01" "system:playback_2"
 
+Both the output port and the input port patterns can be regular expressions.
+If a match is found on an output port, the matching port will be connected to
+all input ports, which match the corresponding input port pattern::
+
+    jack-matchmaker "fluidsynth:l_\d+" "system:playback_[13]" \
+                    "fluidsynth:r_\d+" "system:playback_[24]"
+
+You can also use named regular expression groups in the output port pattern and
+fill the strings they match to into placeholders in the input port pattern::
+
+    jack-matchmaker "system:midi_capture_(?P<num>\d+)" \
+                    "mydaw:midi_in_track_{num}"
+
 Run ``jack-matchmaker -h`` (or ``--help``) to show help on the available
 command line options.
 
