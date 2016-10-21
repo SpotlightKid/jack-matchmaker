@@ -12,11 +12,11 @@ A small command line utility that reacts to JACK port registrations by clients
 and connects them when they match one of the port pattern pairs given on the
 command line at startup.
 
-The port name patterns are specified as positional arguments and are
+The port name patterns are specified as pairs of positional arguments and are
 interpreted as `Python regular expressions`_, where the first pattern of a pair
 is matched against output (readable) ports and the second pattern of a pair is
 matched against input (writable) ports. Matching is done against the normal
-port names as well as any aliases they have (run ``jack-matchmaker -la`` to
+port names as well as any aliases they have (run "``jack-matchmaker -la``" to
 list all available ports with their aliases).
 
 As many pattern pairs as needed can be given.
