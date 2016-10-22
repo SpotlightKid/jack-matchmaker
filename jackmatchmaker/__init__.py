@@ -9,6 +9,7 @@ import re
 import sys
 
 from collections import defaultdict
+from functools import lru_cache
 from itertools import chain
 
 try:
@@ -96,6 +97,15 @@ class JackMatchmaker(object):
                                 log.debug("Found matching input port: %s.", input)
                                 self.queue.put((output, input))
 
+    @lru_cache()
+    def _get_port(self, name):
+        return jacklib.port_by_name(self.client, name)
+
+    def _get_aliases(self, port_name):
+        port = self._get_port(port_name)
+        num_aliases, *aliases = jacklib.port_get_aliases(port)
+        return list(aliases[:num_aliases])
+
     def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
         for port_name in jacklib.get_ports(self.client, '', '', type_):
             if port_name is None:
@@ -104,9 +114,7 @@ class JackMatchmaker(object):
             port_name = port_name.decode('utf-8')
 
             if include_aliases:
-                port = jacklib.port_by_name(self.client, port_name)
-                num_aliases, *aliases = jacklib.port_get_aliases(port)
-                yield [port_name] + list(aliases[:num_aliases])
+                yield [port_name] + self._get_aliases(port_name)
             else:
                 yield [port_name]
 
@@ -143,8 +151,10 @@ class JackMatchmaker(object):
             except KeyboardInterrupt:
                 return
             else:
-                log.info("Connecting ports '%s' <-> '%s'.", output, input)
-                jacklib.connect(self.client, output, input)
+                port = self._get_port(output)
+                if not jacklib.port_connected_to(port, input):
+                    log.info("Connecting ports '%s' <-> '%s'.", output, input)
+                    jacklib.connect(self.client, output, input)
 
 
 def main(args=None):
