@@ -122,18 +122,20 @@ class JackMatchmaker(object):
         raise NotImplementedError("Feature not implemented yet.")
 
     def list_ports(self, include_aliases=True):
-        print("Inputs:\n")
-        for input in self.get_ports(jacklib.JackPortIsInput, include_aliases):
-            print(input[0])
+        print("Outputs:\n")
 
-            for alias in input[1:]:
-                print("    %s" % alias)
-
-        print("\nOutputs:\n")
         for output in self.get_ports(jacklib.JackPortIsOutput, include_aliases):
             print(output[0])
 
             for alias in output[1:]:
+                print("    %s" % alias)
+
+        print("\nInputs:\n")
+
+        for input in self.get_ports(jacklib.JackPortIsInput, include_aliases):
+            print(input[0])
+
+            for alias in input[1:]:
                 print("    %s" % alias)
 
     def run(self):
@@ -151,8 +153,7 @@ class JackMatchmaker(object):
             except KeyboardInterrupt:
                 return
             else:
-                port = self._get_port(output)
-                if not jacklib.port_connected_to(port, input):
+                if not jacklib.port_connected_to(self._get_port(output), input):
                     log.info("Connecting ports '%s' <-> '%s'.", output, input)
                     jacklib.connect(self.client, output, input)
 
