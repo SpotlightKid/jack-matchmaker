@@ -75,6 +75,7 @@ class JackMatchmaker(object):
             log.error("Error in output port pattern '%s': %s", ptn_output, exc)
         else:
             if not (ptn_output, ptn_input) in self.patterns:
+                log.debug("Added patterns: '%s' --> '%s'", ptn_output.pattern, ptn_input)
                 self.patterns.append((ptn_output, ptn_input))
 
     def add_patterns_from_file(self, filename):
@@ -115,7 +116,7 @@ class JackMatchmaker(object):
                         subst = defaultdict(str, **match_output.groupdict())
                         rx_input = ptn_input.format_map(subst)
 
-                        log.debug("Checking input '%s' against pattern '%s'.", input, ptn_input)
+                        log.debug("Match regex '%s' on input '%s'.", ptn_input, input)
 
                         try:
                             rx_input = re.compile(rx_input)
@@ -152,24 +153,22 @@ class JackMatchmaker(object):
         raise NotImplementedError("Feature not implemented yet.")
 
     def list_ports(self, include_aliases=True):
-        print("Outputs:\n")
+        print(self._format_ports(self.get_ports(jacklib.JackPortIsOutput, include_aliases),
+                                 'OUT: '))
+        print(self._format_ports(self.get_ports(jacklib.JackPortIsOutput, include_aliases),
+                                 'IN:  '))
 
-        for output in self.get_ports(jacklib.JackPortIsOutput, include_aliases):
-            print(output[0])
+    def _format_ports(self, ports, prefix):
+        out = []
+        for output in ports:
+            out.append("%s%s" % (prefix, output[0]))
 
             for alias in output[1:]:
-                print("    %s" % alias)
+                out.append("     %s" %alias)
 
-        print("\nInputs:\n")
-
-        for input in self.get_ports(jacklib.JackPortIsInput, include_aliases):
-            print(input[0])
-
-            for alias in input[1:]:
-                print("    %s" % alias)
+        return "\n".join(out)
 
     def run(self):
-        log.debug("Patterns: %s", self.patterns)
         jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
         jacklib.activate(self.client)
         # call on-connection callback once to connect existing clients
@@ -184,7 +183,7 @@ class JackMatchmaker(object):
                 return
             else:
                 if not jacklib.port_connected_to(self._get_port(output), input):
-                    log.info("Connecting ports '%s' <-> '%s'.", output, input)
+                    log.info("Connecting ports '%s' --> '%s'.", output, input)
                     jacklib.connect(self.client, output, input)
 
 
@@ -203,7 +202,7 @@ def main(args=None):
     args = ap.parse_args(args if args is not None else sys.argv[1:])
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format="[%(name)s] %(levelname)s: %(message)s")
+                        format="%(levelname)s: %(message)s")
 
     if args.patterns and args.pattern_file:
         log.warning("Port pattern pairs from command line will be discarded when pattern file is "
