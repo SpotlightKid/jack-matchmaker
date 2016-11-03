@@ -1,23 +1,24 @@
 jack-matchmaker
 ===============
 
-Auto-connect JACK ports as they appear and match the patterns given on the
-command line.
+Auto-connect JACK ports as they appear and when they match the port patterns
+given on the command line or read from a file.
 
 
 Description
 -----------
 
-A small command line utility that reacts to JACK port registrations by clients
-and connects them when they match one of the port pattern pairs given on the
-command line at startup.
+``jack-matchmaker`` is a small command line utility that listens to JACK port
+registrations by clients and connects them when they match one of the port
+pattern pairs given on the command line at startup. ``jack-matchmaker`` never
+disconnects any ports.
 
-The port name patterns are specified as pairs of positional arguments and are
-interpreted as `Python regular expressions`_, where the first pattern of a pair
-is matched against output (readable) ports and the second pattern of a pair is
-matched against input (writable) ports. Matching is done against the normal
-port names as well as any aliases they have (run "``jack-matchmaker -la``" to
-list all available ports with their aliases).
+The port name patterns are specified as pairs of positional arguments or read
+from a file (see below) and are interpreted as `Python regular expressions`_,
+where the first pattern of a pair is matched against output (readable) ports
+and the second pattern of a pair is matched against input (writable) ports.
+Matching is done against the normal port names as well as any aliases they have
+(run "``jack-matchmaker -la``" to list all available ports with their aliases).
 
 As many pattern pairs as needed can be given.
 
@@ -47,26 +48,56 @@ Run ``jack-matchmaker -h`` (or ``--help``) to show help on the available
 command line options.
 
 
+Pattern files
+-------------
+
+In addition to or instead of from positional arguments on the command line,
+port patterns can also be read from a file given with the ``-p/--pattern-file``
+option. The file must list one port pattern per line, where the first line of
+every pair of two lines specifies the output port pattern, and the second
+specifies the input port pattern. Empty lines and lines starting with a
+hash-sign (``#``) are ignored and whitespace at the start or the end of each
+line is stripped.
+
+Example file::
+
+    # left channel
+    .*:out_l
+        system:playback_1
+
+    # right channel
+    .*:out_r
+        system:playback_2
+
+When you send a HUP signal to a running ``jack-matchmaker`` process, the file
+that was specified on the command line when the process was started is re-read
+and the resulting patterns replace *all* previously used patterns. If there is
+an error reading the file, the pattern list will then be empty.
+
+
 Requirements
 ------------
 
-* A version of Python 3 with a `ctypes` module (i.e. PyPy 3 works too) .
+* A version of Python 3 with a ``ctypes`` module (i.e. PyPy 3 works too).
 * JACK_ version 1 or 2.
-* Linux, OS X (untested) or Windows (untested).
+* Linux, OS X (untested) or Windows (untested, no signal handling).
 
 
 Acknowledgements
 ----------------
 
-`jack-matchmaker` is written in Python and incorporates the `jacklib` module
-taken from falkTX's Cadence_ application.
+``jack-matchmaker`` is written in Python and incorporates the ``jacklib``
+module taken from falkTX's Cadence_ application.
 
 It was inspired by jack-autoconnect_, which also auto-connects JACK ports, but
-doesn't support port aliases. jack-autoconnect also written in C++, and
+doesn't support port aliases. jack-autoconnect is also written in C++, and
 therefore probably faster and less memory hungry.
 
+The idea to read ports (patterns) from a file and re-read them on the HUP
+signal was "inspired" by aj-snapshot_.
 
 .. _cadence: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
 .. _jack: http://jackaudio.org/
 .. _jack-autoconnect: https://github.com/kripton/jack_autoconnect
 .. _python regular expressions: https://docs.python.org/3/library/re.html#regular-expression-syntax
+.. _aj-snapshot: http://aj-snapshot.sourceforge.net/
