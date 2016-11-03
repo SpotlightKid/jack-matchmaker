@@ -1,0 +1,13 @@
+# left channel
+.*:output_1
+    system:playback_1
+
+# right channel
+.*:output_2
+    system:playback_2
+
+.*:Out L
+    system:playback_1
+
+.*:Out R
+    system:playback_2
