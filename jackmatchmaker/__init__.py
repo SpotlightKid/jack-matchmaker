@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import logging
 import re
+import signal
 import sys
 
 from collections import defaultdict
@@ -43,6 +44,7 @@ class JackMatchmaker(object):
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
+            signal.signal(signal.SIGHUP, self.reread_pattern_file)
 
         for pair in patterns:
             self.add_patterns(*pair)
@@ -76,6 +78,16 @@ class JackMatchmaker(object):
             linefilter = (line for line in stripfilter if line and not line.startswith('#'))
             for ptn_output, ptn_input in pairwise(linefilter):
                 self.add_patterns(ptn_output, ptn_input)
+
+    def reread_pattern_file(self, sig_no, frame):
+        log.debug("HUP signal received. Re-reading patterns from '%s'.", self.pattern_file)
+        self.patterns = []
+        try:
+            self.add_patterns_from_file(self.pattern_file)
+        except (IOError, OSError) as ec:
+            log.error("Could not read '%s': %s", self.pattern_file, exc)
+        else:
+            self.reg_callback()
 
     def reg_callback(self, port_id, action, *args):
         if action == 0:
@@ -187,6 +199,10 @@ def main(args=None):
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="[%(name)s] %(levelname)s: %(message)s")
+
+    if args.patterns and args.pattern_file:
+        log.warning("Port pattern pairs from command line will be discarded when pattern file is "
+                    "re-read on HUP signal.")
 
     if not args.patterns and not args.pattern_file:
         ap.print_help()
