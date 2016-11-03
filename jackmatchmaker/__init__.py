@@ -32,13 +32,18 @@ def pairwise(iterable):
 
 
 def flatten(nestedlist):
-    """Flatten one level of nesting"""
+    """Flatten one level of nesting."""
     return chain.from_iterable(nestedlist)
 
 
 class JackMatchmaker(object):
-    def __init__(self, patterns, name="jack-matchmaker"):
+    def __init__(self, patterns, pattern_file=None, name="jack-matchmaker"):
         self.patterns = []
+        self.pattern_file = pattern_file
+
+        if self.pattern_file:
+            self.add_patterns_from_file(self.pattern_file)
+
         for pair in patterns:
             self.add_patterns(*pair)
 
@@ -62,7 +67,15 @@ class JackMatchmaker(object):
         except re.error as exc:
             log.error("Error in output port pattern '%s': %s", ptn_output, exc)
         else:
-            self.patterns.append((ptn_output, ptn_input))
+            if not (ptn_output, ptn_input) in self.patterns:
+                self.patterns.append((ptn_output, ptn_input))
+
+    def add_patterns_from_file(self, filename):
+        with open(filename) as fp:
+            stripfilter = (line.strip() for line in fp)
+            linefilter = (line for line in stripfilter if line and not line.startswith('#'))
+            for ptn_output, ptn_input in pairwise(linefilter):
+                self.add_patterns(ptn_output, ptn_input)
 
     def reg_callback(self, port_id, action, *args):
         if action == 0:
@@ -75,7 +88,7 @@ class JackMatchmaker(object):
 
         for ptn_output, ptn_input in self.patterns:
             for output in outputs:
-                log.debug("Checking output '%s' against pattern '%s'.", output, ptn_output)
+                log.debug("Match regex '%s' on output '%s'.", ptn_output.pattern, output)
                 match_output = ptn_output.match(output)
                 if match_output:
                     log.debug("Found matching output port: %s.", output)
@@ -166,6 +179,8 @@ def main(args=None):
                     help="List all JACK input and output ports")
     ap.add_argument('-c', '--list-connections', action="store_true",
                     help="List all connections between JACK ports")
+    ap.add_argument('-p', '--pattern-file', metavar="FILE",
+                    help="Read pattern pairs from FILE (one pattern per line)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
     ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
     args = ap.parse_args(args if args is not None else sys.argv[1:])
@@ -173,8 +188,12 @@ def main(args=None):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="[%(name)s] %(levelname)s: %(message)s")
 
+    if not args.patterns and not args.pattern_file:
+        ap.print_help()
+        return "\nNo pattern file or port patterns given on command line. Nothing to do."
+
     try:
-        matchmaker = JackMatchmaker(list(pairwise(args.patterns)))
+        matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file)
     except RuntimeError as exc:
         return str(exc)
 
