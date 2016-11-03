@@ -44,7 +44,12 @@ class JackMatchmaker(object):
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
-            signal.signal(signal.SIGHUP, self.reread_pattern_file)
+
+            if not sys.platform.startswith('win'):
+                signal.signal(signal.SIGHUP, self.reread_pattern_file)
+            else:
+                log.warning("Signal handling not supported on Windows. jack-matchmaker must be "
+                            "restarted to re-read the pattern file.")
 
         for pair in patterns:
             self.add_patterns(*pair)
