@@ -755,10 +755,10 @@ def port_get_buffer(port, nframes):
     return jacklib.jack_port_get_buffer(port, nframes)
 
 def port_name(port):
-    return jacklib.jack_port_name(port)
+    return jacklib.jack_port_name(port).decode('utf-8')
 
 def port_short_name(port):
-    return jacklib.jack_port_short_name(port)
+    return jacklib.jack_port_short_name(port).decode('utf-8')
 
 def port_flags(port):
     return jacklib.jack_port_flags(port)

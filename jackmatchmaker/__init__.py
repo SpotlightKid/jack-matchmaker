@@ -95,14 +95,16 @@ class JackMatchmaker(object):
         else:
             self.reg_callback()
 
-    def reg_callback(self, port_id, action, *args):
+    def reg_callback(self, port_id=None, action=1, *args):
         if action == 0:
             return
 
+        if port_id is not None:
+            port = jacklib.port_by_id(self.client, port_id)
+            log.debug("New port: %s", jacklib.port_name(port))
+
         inputs = list(flatten(self.get_ports(jacklib.JackPortIsInput)))
-        log.debug("Inputs:\n%s", "\n".join(inputs))
         outputs = list(flatten(self.get_ports(jacklib.JackPortIsOutput)))
-        log.debug("Outputs:\n%s", "\n".join(outputs))
 
         for ptn_output, ptn_input in self.patterns:
             for output in outputs:
@@ -172,7 +174,7 @@ class JackMatchmaker(object):
         jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
         jacklib.activate(self.client)
         # call on-connection callback once to connect existing clients
-        self.reg_callback('dummy', 1)
+        self.reg_callback()
 
         while True:
             try:
