@@ -209,7 +209,7 @@ def main(args=None):
         log.warning("Port pattern pairs from command line will be discarded when pattern file is "
                     "re-read on HUP signal.")
 
-    if not args.patterns and not args.pattern_file:
+    if not any((args.patterns, args.pattern_file, args.list_ports, args.list_connections)):
         ap.print_help()
         return "\nNo pattern file or port patterns given on command line. Nothing to do."
 
