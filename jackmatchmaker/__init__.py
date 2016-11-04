@@ -90,7 +90,7 @@ class JackMatchmaker(object):
         self.patterns = []
         try:
             self.add_patterns_from_file(self.pattern_file)
-        except (IOError, OSError) as ec:
+        except (IOError, OSError) as exc:
             log.error("Could not read '%s': %s", self.pattern_file, exc)
         else:
             self.reg_callback()
@@ -151,8 +151,20 @@ class JackMatchmaker(object):
             else:
                 yield [port_name]
 
-    def list_connections(self, include_aliases=True):
-        raise NotImplementedError("Feature not implemented yet.")
+    def get_connections(self, ports=None):
+        if ports is None:
+            ports = (p[0] for p in self.get_ports())
+
+        for port_name in ports:
+            port = jacklib.port_by_name(self.client, port_name)
+
+            if jacklib.port_connected(port):
+                for other in jacklib.port_get_all_connections(self.client, port):
+                    yield((port_name, other))
+
+    def list_connections(self):
+        for outport, inport in self.get_connections():
+            print("%s <-> %s" % (outport, inport))
 
     def list_ports(self, include_aliases=True):
         print(self._format_ports(self.get_ports(jacklib.JackPortIsOutput, include_aliases),
@@ -166,7 +178,7 @@ class JackMatchmaker(object):
             out.append("%s%s" % (prefix, output[0]))
 
             for alias in output[1:]:
-                out.append("     %s" %alias)
+                out.append("     %s" % alias)
 
         return "\n".join(out)
 

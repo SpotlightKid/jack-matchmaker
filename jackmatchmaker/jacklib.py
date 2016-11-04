@@ -779,10 +779,16 @@ def port_connected_to(port, port_name):
     return jacklib.jack_port_connected_to(port, port_name.encode("utf-8"))
 
 def port_get_connections(port):
-    return jacklib.jack_port_get_connections(port)
+    for port_name in jacklib.jack_port_get_connections(port):
+        if port_name is None:
+            break
+        yield port_name.decode('utf-8')
 
 def port_get_all_connections(client, port):
-    return jacklib.jack_port_get_all_connections(client, port)
+    for port_name in jacklib.jack_port_get_all_connections(client, port):
+        if port_name is None:
+            break
+        yield port_name.decode('utf-8')
 
 def port_tie(src, dst):
     return jacklib.jack_port_tie(src, dst)
