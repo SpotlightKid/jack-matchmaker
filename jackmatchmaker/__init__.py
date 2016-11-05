@@ -111,7 +111,7 @@ class JackMatchmaker(object):
                 log.debug("Match regex '%s' on output '%s'.", ptn_output.pattern, output)
                 match_output = ptn_output.match(output)
                 if match_output:
-                    log.debug("Found matching output port: %s.", output)
+                    log.debug("Found matching output port: %s", output)
                     for input in inputs:
                         # try to fill-in groups matches from output port
                         # pattern into input port pattern
@@ -127,7 +127,7 @@ class JackMatchmaker(object):
                         else:
                             match_input = rx_input.match(input)
                             if match_input:
-                                log.debug("Found matching input port: %s.", input)
+                                log.debug("Found matching input port: %s", input)
                                 self.queue.put((output, input))
 
     @lru_cache()
@@ -164,21 +164,18 @@ class JackMatchmaker(object):
 
     def list_connections(self):
         for outport, inport in self.get_connections():
-            print("%s <-> %s" % (outport, inport))
+            print("%s\n    %s\n" % (outport, inport))
 
-    def list_ports(self, include_aliases=True):
-        print(self._format_ports(self.get_ports(jacklib.JackPortIsOutput, include_aliases),
-                                 'OUT: '))
-        print(self._format_ports(self.get_ports(jacklib.JackPortIsOutput, include_aliases),
-                                 'IN:  '))
+    def list_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
+        print(self._format_ports(self.get_ports(type_, include_aliases)), end='\n\n')
 
-    def _format_ports(self, ports, prefix):
+    def _format_ports(self, ports):
         out = []
         for output in ports:
-            out.append("%s%s" % (prefix, output[0]))
+            out.append(output[0])
 
             for alias in output[1:]:
-                out.append("     %s" % alias)
+                out.append("    %s" % alias)
 
         return "\n".join(out)
 
