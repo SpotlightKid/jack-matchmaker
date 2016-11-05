@@ -199,13 +199,16 @@ class JackMatchmaker(object):
 
 
 def main(args=None):
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument('-a', '--aliases', action="store_true",
-                    help="Include aliases when listing ports")
-    ap.add_argument('-l', '--list-ports', action="store_true",
-                    help="List all JACK input and output ports")
-    ap.add_argument('-c', '--list-connections', action="store_true",
-                    help="List all connections between JACK ports")
+    ap = argparse.ArgumentParser(prog='jack-matchmaker', description=__doc__.splitlines()[0])
+    apg = ap.add_argument_group('actions', 'Listing ports and connections')
+    apg.add_argument('-o', '--list-outputs', dest="actions", action="append_const",
+                     const="list_outs", help="List all JACK output ports")
+    apg.add_argument('-i', '--list-inputs', dest="actions", action="append_const",
+                     const="list_ins", help="List all JACK input ports")
+    apg.add_argument('-a', '--aliases', action="store_true",
+                     help="Include aliases when listing ports")
+    apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
+                     const="list_cnx", help="List all connections between JACK ports")
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
@@ -220,20 +223,23 @@ def main(args=None):
         log.warning("Port pattern pairs from command line will be discarded when pattern file is "
                     "re-read on HUP signal.")
 
-    if not any((args.patterns, args.pattern_file, args.list_ports, args.list_connections)):
+    if args.actions or args.patterns or args.pattern_file:
+        try:
+            matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file)
+        except RuntimeError as exc:
+            return str(exc)
+    else:
         ap.print_help()
         return "\nNo pattern file or port patterns given on command line. Nothing to do."
 
     try:
-        matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file)
-    except RuntimeError as exc:
-        return str(exc)
-
-    try:
-        if args.list_ports:
-            matchmaker.list_ports(include_aliases=args.aliases)
-        elif args.list_connections:
-            matchmaker.list_connections()
+        if args.actions:
+            if 'list_outs' in args.actions:
+                matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases)
+            if 'list_ins' in args.actions:
+                matchmaker.list_ports(jacklib.JackPortIsInput, include_aliases=args.aliases)
+            if 'list_cnx' in args.actions:
+                matchmaker.list_connections()
         else:
             matchmaker.run()
     except Exception as exc:

@@ -18,7 +18,7 @@ from a file (see below) and are interpreted as `Python regular expressions`_,
 where the first pattern of a pair is matched against output (readable) ports
 and the second pattern of a pair is matched against input (writable) ports.
 Matching is done against the normal port names as well as any aliases they have
-(run "``jack-matchmaker -la``" to list all available ports with their aliases).
+(run "``jack-matchmaker -oia``" to list all available ports with their aliases).
 
 As many pattern pairs as needed can be given.
 
