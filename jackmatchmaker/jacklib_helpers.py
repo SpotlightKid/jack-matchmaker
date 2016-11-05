@@ -16,14 +16,15 @@
 #
 # For a full copy of the GNU General Public License see the COPYING file
 
-# ------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Try Import jacklib
 
 from __future__ import absolute_import, print_function, unicode_literals
 
 from . import jacklib
 
-# ------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 # Get JACK error status as string
 
 def get_jack_status_error_string(cStatus):
@@ -64,7 +65,8 @@ def get_jack_status_error_string(cStatus):
 
     return ";\n".join(errorString) + "."
 
-# ------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 # Convert C char** -> Python list
 
 def c_char_p_p_to_list(c_char_p_p):
@@ -85,7 +87,8 @@ def c_char_p_p_to_list(c_char_p_p):
     jacklib.free(c_char_p_p)
     return retList
 
-# ------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 # Convert C void* -> string
 
 def voidptr2str(void_p):
@@ -93,13 +96,15 @@ def voidptr2str(void_p):
     string = str(char_p.value, encoding="utf-8")
     return string
 
-# ------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 # Convert C void* -> jack_default_audio_sample_t*
 
 def translate_audio_port_buffer(void_p):
     return jacklib.cast(void_p, jacklib.POINTER(jacklib.jack_default_audio_sample_t))
 
-# ------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 # Convert a JACK midi buffer into a python variable-size list
 
 def translate_midi_event_buffer(void_p, size):
