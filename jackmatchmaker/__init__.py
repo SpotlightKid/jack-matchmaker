@@ -20,7 +20,7 @@ except ImportError:
 
 from . import jacklib
 from .jacklib_helpers import get_jack_status_error_string
-from .version import __version__  # noqa
+from .version import __version__
 
 
 log = logging.getLogger("jack-matchmaker")
@@ -212,6 +212,7 @@ def main(args=None):
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
+    ap.add_argument('--version', action='version', version='%%(prog)s %s' % __version__)
     ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
     args = ap.parse_args(args if args is not None else sys.argv[1:])
 
