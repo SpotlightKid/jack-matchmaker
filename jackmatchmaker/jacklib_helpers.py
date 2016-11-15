@@ -36,7 +36,7 @@ def get_jack_status_error_string(cStatus):
     errorString = []
 
     if status == jacklib.JackFailure:
-        # Only include this genereic message if no other error status is set
+        # Only include this generic message if no other error status is set
         errorString.append("Overall operation failed")
     if status & jacklib.JackInvalidOption:
         errorString.append("The operation contained an invalid or unsupported option")
