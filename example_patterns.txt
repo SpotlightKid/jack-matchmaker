@@ -1,9 +1,10 @@
 # left channel
-.*:output_1
+.*:out(put)?_(1|l)$
     system:playback_1
 
+
 # right channel
-.*:output_2
+.*:out(put)?_(2|r)$
     system:playback_2
 
 .*:Out L
