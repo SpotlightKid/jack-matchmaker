@@ -83,7 +83,7 @@ class JackMatchmaker(object):
             tries += 1
             if self.connect_maxtries and tries >= self.connect_maxtries:
                 log.error("Maximum number (%i) of connection attempts reached. Aborting.",
-                           self.connect_maxtries)
+                          self.connect_maxtries)
                 raise RuntimeError(err)
 
             log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
@@ -257,7 +257,8 @@ def main(args=None):
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
     ap.add_argument('-I', '--connect-interval', type=posnum, default=3.0, metavar="SECONDS",
-                    help="Interval between attempts to connect to JACK server (default: %(default)s)")
+                    help="Interval between attempts to connect to JACK server "
+                    " (default: %(default)s)")
     ap.add_argument('-m', '--max-tries', type=posnum, default=0, metavar="NUM",
                     help="Maximum number of tries connecting to JACK server (default: 0=infinite)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
