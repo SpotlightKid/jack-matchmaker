@@ -8,6 +8,7 @@ import logging
 import re
 import signal
 import sys
+import time
 
 from collections import defaultdict
 from functools import lru_cache
@@ -37,10 +38,21 @@ def flatten(nestedlist):
     return chain.from_iterable(nestedlist)
 
 
+def posnum(arg):
+    """Make sure that command line arg is a positive number."""
+    value = float(arg)
+    if value < 0:
+        raise argparse.ArgumentTypeError("Value must not be negative!")
+    return value
+
+
 class JackMatchmaker(object):
-    def __init__(self, patterns, pattern_file=None, name="jack-matchmaker"):
+    def __init__(self, patterns, pattern_file=None, name="jack-matchmaker", connect_interval=3.0,
+                 connect_maxtries=0):
         self.patterns = []
         self.pattern_file = pattern_file
+        self.connect_maxtries = connect_maxtries
+        self.connect_interval = connect_interval
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
@@ -55,18 +67,35 @@ class JackMatchmaker(object):
             self.add_patterns(*pair)
 
         self.queue = queue.Queue()
-        status = jacklib.jack_status_t()
-        self.client = jacklib.client_open("jack-matchmaker", jacklib.JackNoStartServer, status)
-        err = get_jack_status_error_string(status)
+        self.client = None
 
-        if err:
-            raise RuntimeError(err)
-        else:
-            log.debug("Client connected, UUID: %s", jacklib.client_get_uuid(self.client))
+    def connect(self):
+        tries = 0
+        while True:
+            log.debug("Attempting to connect to JACK server...")
+            status = jacklib.jack_status_t()
+            self.client = jacklib.client_open("jack-matchmaker", jacklib.JackNoStartServer, status)
+            err = get_jack_status_error_string(status)
+
+            if not err:
+                break
+
+            tries += 1
+            if self.connect_maxtries and tries >= self.connect_maxtries:
+                log.error("Maximum number (%i) of connection attempts reached. Aborting.",
+                           self.connect_maxtries)
+                raise RuntimeError(err)
+
+            log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
+            time.sleep(self.connect_interval)
+
+        jacklib.on_shutdown(self.client, self.shutdown_callback, 'blah')
+        log.debug("Client connected, UUID: %s", jacklib.client_get_uuid(self.client))
 
     def close(self):
-        jacklib.deactivate(self.client)
-        return jacklib.client_close(self.client)
+        if self.client:
+            jacklib.deactivate(self.client)
+            return jacklib.client_close(self.client)
 
     def add_patterns(self, ptn_output, ptn_input):
         try:
@@ -130,6 +159,14 @@ class JackMatchmaker(object):
                                 log.debug("Found matching input port: %s", input)
                                 self.queue.put((output, input))
 
+    def shutdown_callback(self, *args):
+        """
+        If JACK server signals shutdown, sent ``None`` to the queue to cause client to reconnect.
+        """
+        log.debug("JACK server signalled shutdown.")
+        self.client = None
+        self.queue.put(None)
+
     @lru_cache()
     def _get_port(self, name):
         return jacklib.port_by_name(self.client, name)
@@ -180,22 +217,30 @@ class JackMatchmaker(object):
         return "\n".join(out)
 
     def run(self):
-        jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
-        jacklib.activate(self.client)
-        # call on-connection callback once to connect existing clients
-        self.reg_callback()
-
         while True:
             try:
-                output, input = self.queue.get(timeout=1)
-            except queue.Empty:
-                pass
+                self.connect()
+                jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
+                jacklib.activate(self.client)
+                # call on-connection callback once to connect existing clients
+                self.reg_callback()
+
+                while True:
+                    try:
+                        event = self.queue.get(timeout=1)
+                    except queue.Empty:
+                        pass
+                    else:
+                        if event is None:
+                            break
+                        else:
+                            outport, inport = event
+
+                        if not jacklib.port_connected_to(self._get_port(outport), inport):
+                            log.info("Connecting ports '%s' --> '%s'.", outport, inport)
+                            jacklib.connect(self.client, outport, inport)
             except KeyboardInterrupt:
                 return
-            else:
-                if not jacklib.port_connected_to(self._get_port(output), input):
-                    log.info("Connecting ports '%s' --> '%s'.", output, input)
-                    jacklib.connect(self.client, output, input)
 
 
 def main(args=None):
@@ -211,6 +256,10 @@ def main(args=None):
                      const="list_cnx", help="List all connections between JACK ports")
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
+    ap.add_argument('-I', '--connect-interval', type=posnum, default=3.0, metavar="SECONDS",
+                    help="Interval between attempts to connect to JACK server (default: %(default)s)")
+    ap.add_argument('-m', '--max-tries', type=posnum, default=0, metavar="NUM",
+                    help="Maximum number of tries connecting to JACK server (default: 0=infinite)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
     ap.add_argument('--version', action='version', version='%%(prog)s %s' % __version__)
     ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
@@ -225,7 +274,9 @@ def main(args=None):
 
     if args.actions or args.patterns or args.pattern_file:
         try:
-            matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file)
+            matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file,
+                                        connect_interval=args.connect_interval,
+                                        connect_maxtries=args.max_tries)
         except RuntimeError as exc:
             return str(exc)
     else:
@@ -234,6 +285,7 @@ def main(args=None):
 
     try:
         if args.actions:
+            matchmaker.connect()
             if 'list_outs' in args.actions:
                 matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases)
             if 'list_ins' in args.actions:
