@@ -75,6 +75,25 @@ and the resulting patterns replace *all* previously used patterns. If there is
 an error reading the file, the pattern list will then be empty.
 
 
+JACK server connection
+----------------------
+
+``jack-matchmaker`` needs a connection to a running JACK server to be notified
+about new ports. On start-up it tries to connect to JACK until a connection can
+be established or the maximum number of connection attempts is exceeded. This
+number can be set with the command line option ``-m/--max-attempts``, which
+defaults to ``0``, i.e. infinite attempts or until interrupted).
+``jack-matchmaker`` waits for 3 seconds between each connection attempt by
+default. Change this interval with the option ``-I/--connect-interval``.
+
+When ``jack-matchmaker`` is connected and the JACK server is stopped, the
+shutdown event is signalled to ``jack-matchmaker``, which goes into the above
+connection loop again.
+
+To disconnect from the JACK server and stop ``jack-matchmaker``, press
+Control-C.
+
+
 Requirements
 ------------
 
