@@ -23,6 +23,18 @@ Matching is done against the normal port names as well as any aliases they have
 As many pattern pairs as needed can be given.
 
 
+Installation
+------------
+
+Before you install the software, please refer to the section "Requirements".
+
+Then simply do::
+
+    pip install jack-matchmaker
+
+There is also an `AUR package`_ available for Arch Linux users.
+
+
 Usage
 -----
 
@@ -87,8 +99,8 @@ defaults to ``0``, i.e. infinite attempts or until interrupted).
 default. Change this interval with the option ``-I/--connect-interval``.
 
 When ``jack-matchmaker`` is connected and the JACK server is stopped, the
-shutdown event is signalled to ``jack-matchmaker``, which goes into the above
-connection loop again.
+shutdown event is signalled to ``jack-matchmaker``, which the enters the
+connection loop described above again.
 
 To disconnect from the JACK server and stop ``jack-matchmaker``, press
 Control-C.
@@ -100,6 +112,14 @@ Requirements
 * A version of Python 3 with a ``ctypes`` module (i.e. PyPy 3 works too).
 * JACK_ version 1 or 2.
 * Linux, OS X (untested) or Windows (untested, no signal handling).
+
+
+License
+-------
+
+``jack-matchmaker`` is licensed under the GNU Public License Version v2.
+
+Please see the file ``LICENSE`` for more information.
 
 
 Acknowledgements
@@ -120,3 +140,5 @@ signal was "inspired" by aj-snapshot_.
 .. _jack-autoconnect: https://github.com/kripton/jack_autoconnect
 .. _python regular expressions: https://docs.python.org/3/library/re.html#regular-expression-syntax
 .. _aj-snapshot: http://aj-snapshot.sourceforge.net/
+.. _AUR package: https://aur.archlinux.org/packages/jack-matchmaker/
+
