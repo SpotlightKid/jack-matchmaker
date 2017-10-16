@@ -48,10 +48,10 @@ def posnum(arg):
 
 class JackMatchmaker(object):
     def __init__(self, patterns, pattern_file=None, name="jack-matchmaker", connect_interval=3.0,
-                 connect_maxtries=0):
+                 connect_maxattempts=0):
         self.patterns = []
         self.pattern_file = pattern_file
-        self.connect_maxtries = connect_maxtries
+        self.connect_maxattempts = connect_maxattempts
         self.connect_interval = connect_interval
 
         if self.pattern_file:
@@ -81,9 +81,9 @@ class JackMatchmaker(object):
                 break
 
             tries += 1
-            if self.connect_maxtries and tries >= self.connect_maxtries:
+            if self.connect_maxattempts and tries >= self.connect_maxattempts:
                 log.error("Maximum number (%i) of connection attempts reached. Aborting.",
-                          self.connect_maxtries)
+                          self.connect_maxattempts)
                 raise RuntimeError(err)
 
             log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
@@ -259,8 +259,8 @@ def main(args=None):
     ap.add_argument('-I', '--connect-interval', type=posnum, default=3.0, metavar="SECONDS",
                     help="Interval between attempts to connect to JACK server "
                     " (default: %(default)s)")
-    ap.add_argument('-m', '--max-tries', type=posnum, default=0, metavar="NUM",
-                    help="Maximum number of tries connecting to JACK server (default: 0=infinite)")
+    ap.add_argument('-m', '--max-attempts', type=posnum, default=0, metavar="NUM",
+                    help="Max. number of attempts to connect to JACK server (default: 0=infinite)")
     ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
     ap.add_argument('--version', action='version', version='%%(prog)s %s' % __version__)
     ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
@@ -277,7 +277,7 @@ def main(args=None):
         try:
             matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file,
                                         connect_interval=args.connect_interval,
-                                        connect_maxtries=args.max_tries)
+                                        connect_maxattempts=args.max_attempts)
         except RuntimeError as exc:
             return str(exc)
     else:
