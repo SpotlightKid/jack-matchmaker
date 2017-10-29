@@ -94,12 +94,12 @@ JACK server connection
 about new ports. On start-up it tries to connect to JACK until a connection can
 be established or the maximum number of connection attempts is exceeded. This
 number can be set with the command line option ``-m/--max-attempts``, which
-defaults to ``0``, i.e. infinite attempts or until interrupted).
+defaults to ``0`` (i.e. infinite attempts or until interrupted).
 ``jack-matchmaker`` waits for 3 seconds between each connection attempt by
 default. Change this interval with the option ``-I/--connect-interval``.
 
 When ``jack-matchmaker`` is connected and the JACK server is stopped, the
-shutdown event is signalled to ``jack-matchmaker``, which the enters the
+shutdown event is signalled to ``jack-matchmaker``, which then enters the
 connection loop described above again.
 
 To disconnect from the JACK server and stop ``jack-matchmaker``, press
@@ -135,10 +135,15 @@ therefore probably faster and less memory hungry.
 The idea to read ports (patterns) from a file and re-read them on the HUP
 signal was "inspired" by aj-snapshot_.
 
+There is also a similar tool called jack-plumbing_, part of the jack-tools_
+package on popular Linux distributions.
+
+
 .. _cadence: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
 .. _jack: http://jackaudio.org/
 .. _jack-autoconnect: https://github.com/kripton/jack_autoconnect
 .. _python regular expressions: https://docs.python.org/3/library/re.html#regular-expression-syntax
 .. _aj-snapshot: http://aj-snapshot.sourceforge.net/
 .. _AUR package: https://aur.archlinux.org/packages/jack-matchmaker/
-
+.. _jack-plumbing: http://rd.slavepianos.org/sw/rju/md/jack-plumbing.md
+.. _jack-tools: https://packages.ubuntu.com/search?keywords=jack-tools&searchon=names&suite=all&section=all
