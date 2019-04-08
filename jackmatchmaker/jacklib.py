@@ -21,9 +21,10 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from ctypes import (ARRAY, CFUNCTYPE, POINTER, Structure, c_char_p, c_double, c_float, c_int,
-                    c_int32, c_size_t, c_uint8, c_uint32, c_uint64, c_ulong, c_void_p, cdll,
+from ctypes import (ARRAY, CFUNCTYPE, POINTER, Structure, byref, c_char_p, c_double, c_float,
+                    c_int, c_int32, c_size_t, c_uint8, c_uint32, c_uint64, c_ulong, c_void_p, cdll,
                     pointer)
+from collections import namedtuple
 from sys import platform
 
 
@@ -78,23 +79,47 @@ JACK_LOAD_INIT_LIMIT = 1024
 JACK_DEFAULT_AUDIO_TYPE = "32 bit float mono audio"
 JACK_DEFAULT_MIDI_TYPE = "8 bit raw midi"
 
+# Meta data
+_JACK_METADATA_PREFIX = "http://jackaudio.org/metadata/"
+JACK_METADATA_CONNECTED = _JACK_METADATA_PREFIX + "connected"
+JACK_METADATA_EVENT_TYPES = _JACK_METADATA_PREFIX + "event-types"
+JACK_METADATA_HARDWARE = _JACK_METADATA_PREFIX + "hardware"
+JACK_METADATA_ICON_LARGE = _JACK_METADATA_PREFIX + "icon-large"
+JACK_METADATA_ICON_NAME = _JACK_METADATA_PREFIX + "icon-name"
+JACK_METADATA_ICON_SMALL = _JACK_METADATA_PREFIX + "icon-small"
+JACK_METADATA_ORDER = _JACK_METADATA_PREFIX + "order"
+JACK_METADATA_PORT_GROUP = _JACK_METADATA_PREFIX + "port-group"
+JACK_METADATA_PRETTY_NAME = _JACK_METADATA_PREFIX + "pretty-name"
+JACK_METADATA_SIGNAL_TYPE = _JACK_METADATA_PREFIX + "signal-type"
+
 
 # -------------------------------------------------------------------------------------------------
 # Helper functions
 
 def _e(s, encoding=ENCODING):
-    return s.encode(ENCODING)
+    if encoding:
+        return s.encode(encoding)
+    return s
+
+
+def _d(s, encoding=ENCODING):
+    if encoding:
+        return s.decode(encoding)
+    return s
 
 
 # -------------------------------------------------------------------------------------------------
 # Types
 
+jack_client_t = _jack_client
+jack_default_audio_sample_t = c_float
+jack_midi_data_t = c_uchar
 jack_nframes_t = c_uint32
 jack_port_id_t = c_uint32
+jack_port_t = _jack_port
 jack_time_t = c_uint64
 jack_unique_t = c_uint64
-jack_midi_data_t = c_uchar
-jack_default_audio_sample_t = c_float
+jack_uuid_t = c_uint64
 
 jack_options_t = c_enum                 # JackOptions
 jack_status_t = c_enum                  # JackStatus
@@ -104,9 +129,8 @@ jack_session_event_type_t = c_enum      # JackSessionEventType
 jack_session_flags_t = c_enum           # JackSessionFlags
 jack_custom_change_t = c_enum           # JackCustomChange
 jack_latency_callback_mode_t = c_enum   # JackLatencyCallbackMode
+jack_property_change_t = c_enum         # JacKPropertyChange
 
-jack_port_t = _jack_port
-jack_client_t = _jack_client
 # JACK2 only:
 jack_port_type_id_t = c_uint32
 
@@ -179,6 +203,10 @@ JackCustomRemoved = 0
 JackCustomAdded = 1
 JackCustomReplaced = 2
 
+# enum JackPropertyChange
+PropertyCreated = 0
+PropertyChanged = 1
+PropertyDeleted = 2
 
 # -------------------------------------------------------------------------------------------------
 # Structs
@@ -243,6 +271,23 @@ class jack_session_command_t(Structure):
     ]
 
 
+class jack_property_t(Structure):
+    _fields_ = [
+        ('key', c_char_p),
+        ('data', c_char_p),
+        ('type', c_char_p)
+    ]
+
+
+class jack_description_t(Structure):
+    _fields_ = [
+        ('subject', jack_uuid_t),
+        ('property_cnt', c_uint32),
+        ('properties', POINTER(jack_property_t)),
+        ('property_size', c_uint32)
+    ]
+
+
 # -------------------------------------------------------------------------------------------------
 # Callbacks
 
@@ -270,7 +315,8 @@ JackTimebaseCallback = CFUNCTYPE(None, jack_transport_state_t, jack_nframes_t,
 JackSessionCallback = CFUNCTYPE(None, POINTER(jack_session_event_t), c_void_p)
 JackCustomDataAppearanceCallback = CFUNCTYPE(None, c_char_p, c_char_p, jack_custom_change_t,
                                              c_void_p)
-
+JackPropertyChangeCallback = CFUNCTYPE(None, jack_uuid_t, c_char_p, jack_property_change_t,
+                                       c_void_p)
 
 # -------------------------------------------------------------------------------------------------
 # Functions
@@ -865,6 +911,10 @@ jlib.jack_port_name_size.restype = c_int
 jlib.jack_port_type_size.argtypes = None
 jlib.jack_port_type_size.restype = c_int
 
+jlib.jack_port_uuid.argtypes = [POINTER(jack_port_t)]
+jlib.jack_port_uuid.restype = jack_uuid_t
+
+
 try:
     jlib.jack_port_type_get_buffer_size.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_port_type_get_buffer_size.restype = c_size_t
@@ -1002,6 +1052,10 @@ def port_type_get_buffer_size(client, port_type):
     if jlib.jack_port_type_get_buffer_size:
         return jlib.jack_port_type_get_buffer_size(client, _e(port_type))
     return 0
+
+
+def port_uuid(port):
+    return jlib.jack_port_uuid(port)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1548,4 +1602,214 @@ def custom_set_data_appearance_callback(client, custom_callback, arg):
         _custom_appearance_callback = JackCustomDataAppearanceCallback(custom_callback)
         return jlib.jack_custom_set_data_appearance_callback(client, _custom_appearance_callback,
                                                              arg)
+    return -1
+
+
+# -------------------------------------------------------------------------------------------------
+# Meta data
+
+global _property_change_callback
+_property_change_callback = None
+
+Property = namedtuple('Property', ('key', 'value', 'type'))
+
+try:
+    jlib.jack_free_description.argtypes = [POINTER(jack_description_t), c_int]
+    jlib.jack_free_description.restype = None
+
+    jlib.jack_get_all_properties.argtypes = [POINTER(POINTER(jack_description_t))]
+    jlib.jack_get_all_properties.restype = c_int
+
+    jlib.jack_get_properties.argtypes = [jack_uuid_t, POINTER(jack_description_t)]
+    jlib.jack_get_properties.restype = c_int
+
+    jlib.jack_get_property.argtypes = [jack_uuid_t, c_char_p, POINTER(c_char_p), POINTER(c_char_p)]
+    jlib.jack_get_property.restype = c_int
+
+    jlib.jack_remove_all_properties.argtypes = [POINTER(jack_client_t)]
+    jlib.jack_remove_all_properties.restype = c_int
+
+    jlib.jack_remove_properties.argtypess = [POINTER(jack_client_t), POINTER(jack_uuid_t)]
+    jlib.jack_remove_properties.restype = c_int
+
+    jlib.jack_remove_property.argtypes = [POINTER(jack_client_t), POINTER(jack_uuid_t), c_char_p]
+    jlib.jack_remove_property.restype = c_int
+
+    jlib.jack_set_property.argtypes = [
+        POINTER(jack_client_t),
+        POINTER(jack_uuid_t),
+        c_char_p,
+        c_char_p,
+        c_char_p
+    ]
+    jlib.jack_set_property.restype = c_int
+
+    jlib.jack_set_property_change_callback.argtypes = [
+        POINTER(jack_client_t),
+        JackPropertyChangeCallback,
+        c_void_p
+    ]
+    jlib.jack_set_property_change_callback.restype = c_int
+except AttributeError:
+    jlib.jack_free_description = None
+    jlib.jack_get_properties = None
+    jlib.jack_get_property = None
+    jlib.jack_remove_all_properties = None
+    jlib.jack_remove_properties = None
+    jlib.jack_remove_property = None
+    jlib.jack_set_property = None
+    jlib.jack_set_property_change_callback = None
+
+
+def free_description(description, free_description_itself=0):
+    jlib.jack_free_description(description, free_description_itself)
+
+
+def _decode_property(prop):
+    key, value, type = prop.key, prop.data, prop.type
+
+    try:
+        key = _d(key, ENCODING)
+    except UnicodeDecodeError:
+        pass
+
+    if type:
+        try:
+            type = _d(type, ENCODING)
+        except UnicodeDecodeError:
+            pass
+    else:
+        try:
+            value = _d(value, ENCODING)
+        except UnicodeDecodeError:
+            pass
+
+    return Property(key, value, type)
+
+
+def get_all_properties():
+    descriptions = POINTER(jack_description_t)()
+    ret = jlib.jack_get_all_properties(byref(descriptions))
+    results = {}
+
+    if ret != -1:
+        for p_idx in range(ret):
+            description = descriptions[p_idx]
+
+            if description.property_cnt:
+                results[description.subject] = [_decode_property(description.properties[p_idx])
+                                                for p_idx in range(description.property_cnt)]
+
+            jlib.jack_free_description(description, 0)
+
+    free(descriptions)
+    return results
+
+
+def get_properties(subject, encoding=ENCODING):
+    description = jack_description_t()
+    ret = jlib.jack_get_properties(subject, byref(description))
+    results = []
+
+    if ret != -1:
+        for p_idx in range(description.property_cnt):
+            results.append(_decode_property(description.properties[p_idx]))
+
+    jlib.jack_free_description(byref(description), 0)
+    return results
+
+
+def get_port_properties(client, port, encoding=ENCODING):
+    if not isinstance(port, POINTER(jack_port_t)):
+        port = port_by_name(client, port)
+
+    return get_properties(port_uuid(port), encoding)
+
+
+def get_property(subject, key, encoding=None):
+    # FIXME: how to handle non-null terminated data in value?
+    #        We wouldn't know the length of the data in the value buffer.
+    #        This seems to be an oversight in teh JACK meta data API.
+    value = c_char_p()
+    type = c_char_p()
+    ret = jlib.jack_get_property(subject, _e(key), byref(value), byref(type))
+
+    if ret != -1:
+        if type:
+            v = value.value
+            t = _d(type.value)
+            free(type)
+        else:
+            t = None
+            v = _d(value.value, encoding)
+
+        free(value)
+        return Property(key, v, t)
+
+
+def get_port_property(client, port, key, encoding=ENCODING):
+    if not isinstance(port, POINTER(jack_port_t)):
+        port = port_by_name(client, port)
+
+    return get_property(port_uuid(port), key, encoding)
+
+
+def get_port_pretty_name(client, port, encoding=ENCODING):
+    prop = get_port_property(client, port, JACK_METADATA_PRETTY_NAME, encoding)
+    return prop.value if prop else None
+
+
+def remove_all_properties(client):
+    return jlib.jack_remove_property(client)
+
+
+def remove_properties(client, subject):
+    return jlib.jack_remove_property(client, subject)
+
+
+def remove_port_properties(client, port):
+    if not isinstance(port, POINTER(jack_port_t)):
+        port = port_by_name(client, port)
+
+    return remove_properties(client, port)
+
+
+def remove_property(client, subject, key, encoding=ENCODING):
+    return jlib.jack_remove_property(client, subject, _e(key, encoding))
+
+
+def remove_port_property(client, port, key, encoding=ENCODING):
+    if not isinstance(port, POINTER(jack_port_t)):
+        port = port_by_name(client, port)
+
+    return remove_property(client, port, key, encoding)
+
+
+def set_property(client, subject, key, value, type=None, encoding=ENCODING):
+    if type and encoding:
+        type = _e(type, encoding)
+
+    if value and encoding:
+        value = _e(value, encoding)
+
+    return jlib.jack_set_property(client, subject, _e(key, encoding), value, type)
+
+
+def set_port_property(client, port, key, value, type=None, encoding=ENCODING):
+    if not isinstance(port, POINTER(jack_port_t)):
+        port = port_by_name(client, port)
+
+    return set_property(client, port_uuid(port), key, value, type, encoding)
+
+
+def set_port_pretty_name(client, port, value, encoding=ENCODING):
+    return set_port_property(client, port, JACK_METADATA_PRETTY_NAME, value, encoding)
+
+
+def set_property_change_callback(client, callback, arg=None):
+    if jlib.jack_set_property_change_callback:
+        global _property_change_callback
+        _property_change_callback = JackPropertyChangeCallback(callback)
+        return jlib.jack_set_property_change_callback(client, _property_change_callback, arg)
+
     return -1
