@@ -935,8 +935,11 @@ jlib.jack_port_name_size.restype = c_int
 jlib.jack_port_type_size.argtypes = None
 jlib.jack_port_type_size.restype = c_int
 
-jlib.jack_port_uuid.argtypes = [POINTER(jack_port_t)]
-jlib.jack_port_uuid.restype = jack_uuid_t
+try:
+    jlib.jack_port_uuid.argtypes = [POINTER(jack_port_t)]
+    jlib.jack_port_uuid.restype = jack_uuid_t
+except AttributeError:
+    jlib.jack_port_uuid = None
 
 
 try:
@@ -1079,8 +1082,10 @@ def port_type_get_buffer_size(client, port_type):
 
 
 def port_uuid(port):
-    return jlib.jack_port_uuid(port)
+    if jlib.jack_port_uuid:
+        return jlib.jack_port_uuid(port)
 
+    return -1
 
 # -------------------------------------------------------------------------------------------------
 # Latency Functions
