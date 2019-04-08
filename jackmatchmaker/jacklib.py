@@ -208,6 +208,7 @@ PropertyCreated = 0
 PropertyChanged = 1
 PropertyDeleted = 2
 
+
 # -------------------------------------------------------------------------------------------------
 # Structs
 
@@ -1087,6 +1088,7 @@ def port_uuid(port):
 
     return -1
 
+
 # -------------------------------------------------------------------------------------------------
 # Latency Functions
 
@@ -1703,29 +1705,33 @@ def free_description(description, free_description_itself=0):
     jlib.jack_free_description(description, free_description_itself)
 
 
-def _decode_property(prop):
-    key, value, type = prop.key, prop.data, prop.type
+def _decode_property(prop, encoding=ENCODING):
+    key, value, type_ = prop.key, prop.data, prop.type
+    decode_value = True
 
     try:
-        key = _d(key, ENCODING)
+        key = _d(key, encoding)
     except UnicodeDecodeError:
         pass
 
-    if type:
+    if type_:
         try:
-            type = _d(type, ENCODING)
+            type_ = _d(type_, encoding)
         except UnicodeDecodeError:
             pass
-    else:
+        else:
+            decode_value = type_.startswith('text/')
+
+    if decode_value:
         try:
-            value = _d(value, ENCODING)
+            value = _d(value, encoding)
         except UnicodeDecodeError:
             pass
 
-    return Property(key, value, type)
+    return Property(key, value, type_)
 
 
-def get_all_properties():
+def get_all_properties(encoding=ENCODING):
     descriptions = POINTER(jack_description_t)()
     ret = jlib.jack_get_all_properties(byref(descriptions))
     results = {}
@@ -1735,8 +1741,10 @@ def get_all_properties():
             description = descriptions[p_idx]
 
             if description.property_cnt:
-                results[description.subject] = [_decode_property(description.properties[p_idx])
-                                                for p_idx in range(description.property_cnt)]
+                results[description.subject] = [
+                    _decode_property(description.properties[p_idx], encoding)
+                    for p_idx in range(description.property_cnt)
+                ]
 
             jlib.jack_free_description(description, 0)
 
@@ -1751,7 +1759,7 @@ def get_properties(subject, encoding=ENCODING):
 
     if ret != -1:
         for p_idx in range(description.property_cnt):
-            results.append(_decode_property(description.properties[p_idx]))
+            results.append(_decode_property(description.properties[p_idx], encoding))
 
     jlib.jack_free_description(byref(description), 0)
     return results
@@ -1764,29 +1772,37 @@ def get_port_properties(client, port, encoding=ENCODING):
     return get_properties(port_uuid(port), encoding)
 
 
-def get_property(subject, key, encoding=None):
+def get_property(subject, key, encoding=ENCODING):
     # FIXME: how to handle non-null terminated data in value?
     #        We wouldn't know the length of the data in the value buffer.
     #        This seems to be an oversight in teh JACK meta data API.
-    value = c_char_p()
-    type = c_char_p()
-    ret = jlib.jack_get_property(subject, _e(key), byref(value), byref(type))
+    value_c = c_char_p()
+    type_c = c_char_p()
+    ret = jlib.jack_get_property(subject, _e(key), byref(value_c), byref(type_c))
 
     if ret != -1:
-        if type:
-            t = _d(type.value)
-            free(type)
+        decode_value = True
 
-            if t.startswith('text/'):
-                v = _d(value.value, encoding)
+        if type_c:
+            try:
+                type_ = _d(type_c.value, encoding)
+            except UnicodeDecodeError:
+                type_ = type_c.value
             else:
-                v = value.value
-        else:
-            t = None
-            v = _d(value.value, encoding)
+                decode_value = type_.startswith('text/')
 
-        free(value)
-        return Property(key, v, t)
+            free(type_c)
+        else:
+            type_ = None
+
+        if decode_value:
+            try:
+                value = _d(value_c.value, encoding)
+            except UnicodeDecodeError:
+                value = value_c.value
+
+        free(value_c)
+        return Property(key, value, type_)
 
 
 def get_port_property(client, port, key, encoding=ENCODING):
