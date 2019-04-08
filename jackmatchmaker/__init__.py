@@ -53,6 +53,7 @@ class JackMatchmaker(object):
         self.pattern_file = pattern_file
         self.connect_maxattempts = connect_maxattempts
         self.connect_interval = connect_interval
+        self.client_name = name
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
@@ -74,7 +75,7 @@ class JackMatchmaker(object):
         while True:
             log.debug("Attempting to connect to JACK server...")
             status = jacklib.jack_status_t()
-            self.client = jacklib.client_open("jack-matchmaker", jacklib.JackNoStartServer, status)
+            self.client = jacklib.client_open(self.client_name, jacklib.JackNoStartServer, status)
             err = get_jack_status_error_string(status)
 
             if not err:
@@ -256,6 +257,8 @@ def main(args=None):
                      const="list_cnx", help="List all connections between JACK ports")
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
+    apg.add_argument('--client-name', metavar='NAME',
+                     help="Set JACK client name to NAME (default: %(default)s)")
     ap.add_argument('-I', '--connect-interval', type=posnum, default=3.0, metavar="SECONDS",
                     help="Interval between attempts to connect to JACK server "
                     " (default: %(default)s)")
