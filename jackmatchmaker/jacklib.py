@@ -38,7 +38,7 @@ try:
         jlib = cdll.LoadLibrary("libjack.dll")
     else:
         jlib = cdll.LoadLibrary("libjack.so.0")
-except:
+except OSError:
     jlib = None
     raise ImportError("JACK is not available in this system")
 
@@ -51,7 +51,7 @@ try:
         JACK2 = True
     else:
         JACK2 = False
-except:
+except AttributeError:
     JACK2 = False
 
 
@@ -324,61 +324,61 @@ JackPropertyChangeCallback = CFUNCTYPE(None, jack_uuid_t, c_char_p, jack_propert
 try:
     jlib.jack_get_version_string.argtypes = None
     jlib.jack_get_version_string.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_get_version_string = None
 
 try:
     jlib.jack_client_open.argtypes = [c_char_p, jack_options_t, POINTER(jack_status_t), c_char_p]
     jlib.jack_client_open.restype = POINTER(jack_client_t)
-except:
+except AttributeError:
     jlib.jack_client_open = None
 
 try:
     jlib.jack_client_rename.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_client_rename.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_client_rename = None
 
 try:
     jlib.jack_client_close.argtypes = [POINTER(jack_client_t)]
     jlib.jack_client_close.restype = c_int
-except:
+except AttributeError:
     jlib.jack_client_close = None
 
 try:
     jlib.jack_client_name_size.argtypes = None
     jlib.jack_client_name_size.restype = c_int
-except:
+except AttributeError:
     jlib.jack_client_name_size = None
 
 try:
     jlib.jack_get_client_name.argtypes = [POINTER(jack_client_t)]
     jlib.jack_get_client_name.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_get_client_name = None
 
 try:
     jlib.jack_activate.argtypes = [POINTER(jack_client_t)]
     jlib.jack_activate.restype = c_int
-except:
+except AttributeError:
     jlib.jack_activate = None
 
 try:
     jlib.jack_deactivate.argtypes = [POINTER(jack_client_t)]
     jlib.jack_deactivate.restype = c_int
-except:
+except AttributeError:
     jlib.jack_deactivate = None
 
 try:
     jlib.jack_get_client_pid.argtypes = [c_char_p]
     jlib.jack_get_client_pid.restype = c_int
-except:
+except AttributeError:
     jlib.jack_get_client_pid = None
 
 try:
     jlib.jack_is_realtime.argtypes = [POINTER(jack_client_t)]
     jlib.jack_is_realtime.restype = c_int
-except:
+except AttributeError:
     jlib.jack_is_realtime = None
 
 
@@ -453,19 +453,19 @@ _thread_callback = None
 try:
     jlib.jack_cycle_wait.argtypes = [POINTER(jack_client_t)]
     jlib.jack_cycle_wait.restype = jack_nframes_t
-except:
+except AttributeError:
     jlib.jack_cycle_wait = None
 
 try:
     jlib.jack_cycle_signal.argtypes = [POINTER(jack_client_t), c_int]
     jlib.jack_cycle_signal.restype = None
-except:
+except AttributeError:
     jlib.jack_cycle_signal = None
 
 try:
     jlib.jack_set_process_thread.argtypes = [POINTER(jack_client_t), JackThreadCallback, c_void_p]
     jlib.jack_set_process_thread.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_process_thread = None
 
 
@@ -520,13 +520,13 @@ try:
         c_void_p
     ]
     jlib.jack_set_thread_init_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_thread_init_callback = None
 
 try:
     jlib.jack_on_shutdown.argtypes = [POINTER(jack_client_t), JackShutdownCallback, c_void_p]
     jlib.jack_on_shutdown.restype = None
-except:
+except AttributeError:
     jlib.jack_on_shutdown = None
 
 try:
@@ -536,7 +536,7 @@ try:
         c_void_p
     ]
     jlib.jack_on_info_shutdown.restype = None
-except:
+except AttributeError:
     jlib.jack_on_info_shutdown = None
 
 try:
@@ -546,7 +546,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_process_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_process_callback = None
 
 try:
@@ -556,7 +556,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_freewheel_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_freewheel_callback = None
 
 try:
@@ -566,7 +566,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_buffer_size_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_buffer_size_callback = None
 
 try:
@@ -576,7 +576,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_sample_rate_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_sample_rate_callback = None
 
 try:
@@ -586,7 +586,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_client_registration_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_client_registration_callback = None
 
 try:
@@ -596,7 +596,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_client_rename_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_client_rename_callback = None
 
 try:
@@ -606,7 +606,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_port_registration_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_port_registration_callback = None
 
 try:
@@ -616,7 +616,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_port_connect_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_port_connect_callback = None
 
 try:
@@ -626,7 +626,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_port_rename_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_port_rename_callback = None
 
 try:
@@ -636,13 +636,13 @@ try:
         c_void_p
     ]
     jlib.jack_set_graph_order_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_graph_order_callback = None
 
 try:
     jlib.jack_set_xrun_callback.argtypes = [POINTER(jack_client_t), JackXRunCallback, c_void_p]
     jlib.jack_set_xrun_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_xrun_callback = None
 
 try:
@@ -652,7 +652,7 @@ try:
         c_void_p
     ]
     jlib.jack_set_latency_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_latency_callback = None
 
 
@@ -918,7 +918,7 @@ jlib.jack_port_uuid.restype = jack_uuid_t
 try:
     jlib.jack_port_type_get_buffer_size.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_port_type_get_buffer_size.restype = c_size_t
-except:
+except AttributeError:
     jlib.jack_port_type_get_buffer_size = None
 
 
@@ -1071,7 +1071,7 @@ try:
         POINTER(jack_latency_range_t)
     ]
     jlib.jack_port_get_latency_range.restype = None
-except:
+except AttributeError:
     jlib.jack_port_get_latency_range = None
 
 try:
@@ -1081,7 +1081,7 @@ try:
         POINTER(jack_latency_range_t)
     ]
     jlib.jack_port_set_latency_range.restype = None
-except:
+except AttributeError:
     jlib.jack_port_set_latency_range = None
 
 jlib.jack_recompute_total_latencies.argtypes = [POINTER(jack_client_t)]
@@ -1174,7 +1174,7 @@ try:
         POINTER(c_float)
     ]
     jlib.jack_get_cycle_times.restype = c_int
-except:
+except AttributeError:
     jlib.jack_get_cycle_times = None
 
 jlib.jack_frames_to_time.argtypes = [POINTER(jack_client_t), jack_nframes_t]
@@ -1393,25 +1393,25 @@ try:
         c_void_p
     ]
     jlib.jack_set_session_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_set_session_callback = None
 
 try:
     jlib.jack_session_reply.argtypes = [POINTER(jack_client_t), POINTER(jack_session_event_t)]
     jlib.jack_session_reply.restype = c_int
-except:
+except AttributeError:
     jlib.jack_session_reply = None
 
 try:
     jlib.jack_session_event_free.argtypes = [POINTER(jack_session_event_t)]
     jlib.jack_session_event_free.restype = None
-except:
+except AttributeError:
     jlib.jack_session_event_free = None
 
 try:
     jlib.jack_client_get_uuid.argtypes = [POINTER(jack_client_t)]
     jlib.jack_client_get_uuid.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_client_get_uuid = None
 
 try:
@@ -1422,37 +1422,37 @@ try:
         c_char_p
     ]
     jlib.jack_session_notify.restype = POINTER(jack_session_command_t)
-except:
+except AttributeError:
     jlib.jack_session_notify = None
 
 try:
     jlib.jack_session_commands_free.argtypes = [POINTER(jack_session_command_t)]
     jlib.jack_session_commands_free.restype = None
-except:
+except AttributeError:
     jlib.jack_session_commands_free = None
 
 try:
     jlib.jack_get_uuid_for_client_name.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_get_uuid_for_client_name.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_get_uuid_for_client_name = None
 
 try:
     jlib.jack_get_client_name_by_uuid.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_get_client_name_by_uuid.restype = c_char_p
-except:
+except AttributeError:
     jlib.jack_get_client_name_by_uuid = None
 
 try:
     jlib.jack_reserve_client_name.argtypes = [POINTER(jack_client_t), c_char_p, c_char_p]
     jlib.jack_reserve_client_name.restype = c_int
-except:
+except AttributeError:
     jlib.jack_reserve_client_name = None
 
 try:
     jlib.jack_client_has_session_callback.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_client_has_session_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_client_has_session_callback = None
 
 
@@ -1525,7 +1525,7 @@ _custom_appearance_callback = None
 try:
     jlib.jack_custom_publish_data.argtypes = [POINTER(jack_client_t), c_char_p, c_void_p, c_size_t]
     jlib.jack_custom_publish_data.restype = c_int
-except:
+except AttributeError:
     jlib.jack_custom_publish_data = None
 
 try:
@@ -1537,19 +1537,19 @@ try:
         POINTER(c_size_t)
     ]
     jlib.jack_custom_get_data.restype = c_int
-except:
+except AttributeError:
     jlib.jack_custom_get_data = None
 
 try:
     jlib.jack_custom_unpublish_data.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_custom_unpublish_data.restype = c_int
-except:
+except AttributeError:
     jlib.jack_custom_unpublish_data = None
 
 try:
     jlib.jack_custom_get_keys.argtypes = [POINTER(jack_client_t), c_char_p]
     jlib.jack_custom_get_keys.restype = POINTER(c_char_p)
-except:
+except AttributeError:
     jlib.jack_custom_get_keys = None
 
 try:
@@ -1559,7 +1559,7 @@ try:
         c_void_p
     ]
     jlib.jack_custom_set_data_appearance_callback.restype = c_int
-except:
+except AttributeError:
     jlib.jack_custom_set_data_appearance_callback = None
 
 
