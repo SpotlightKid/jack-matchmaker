@@ -959,11 +959,11 @@ def port_get_buffer(port, nframes):
 
 
 def port_name(port):
-    return jlib.jack_port_name(port).decode('utf-8')
+    return _d(jlib.jack_port_name(port))
 
 
 def port_short_name(port):
-    return jlib.jack_port_short_name(port).decode('utf-8')
+    return _d(jlib.jack_port_short_name(port))
 
 
 def port_flags(port):
@@ -995,14 +995,14 @@ def port_get_connections(port):
     for port_name in jlib.jack_port_get_connections(port):
         if port_name is None:
             break
-        yield port_name.decode('utf-8')
+        yield _d(port_name)
 
 
 def port_get_all_connections(client, port):
     for port_name in jlib.jack_port_get_all_connections(client, port):
         if port_name is None:
             break
-        yield port_name.decode('utf-8')
+        yield _d(port_name)
 
 
 def port_tie(src, dst):
@@ -1030,10 +1030,9 @@ def port_get_aliases(port):
     # Instead, aliases will be passed in return value, in form of (int ret, str alias1, str alias2)
     name_size = port_name_size()
     alias_type = c_char_p * 2
-    aliases = alias_type(" ".encode(ENCODING) * name_size, " ".encode(ENCODING) * name_size)
-
+    aliases = alias_type(b" " * name_size, b" " * name_size)
     ret = jlib.jack_port_get_aliases(port, pointer(aliases))
-    return (ret, aliases[0].decode(ENCODING), aliases[1].decode(ENCODING))
+    return ret, _d(aliases[0]), _d(aliases[1])
 
 
 def port_request_monitor(port, onoff):
@@ -1504,7 +1503,8 @@ def session_event_free(event):
 
 def client_get_uuid(client):
     if jlib.jack_client_get_uuid:
-        return jlib.jack_client_get_uuid(client).decode('utf-8')
+        return _d(jlib.jack_client_get_uuid(client))
+
     return None
 
 
@@ -1611,9 +1611,9 @@ def custom_get_data(client, client_name, key):
         size = c_size_t(0)
         ret = jlib.jack_custom_get_data(client, _e(client_name), _e(key), pointer(data),
                                         pointer(size))
-        return (ret, data, size)
+        return ret, data, size
 
-    return (-1, None, 0)
+    return -1, None, 0
 
 
 def custom_unpublish_data(client, key):
