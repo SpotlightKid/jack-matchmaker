@@ -1769,9 +1769,13 @@ def get_property(subject, key, encoding=None):
 
     if ret != -1:
         if type:
-            v = value.value
             t = _d(type.value)
             free(type)
+
+            if t.startswith('text/'):
+                v = _d(value.value, encoding)
+            else:
+                v = value.value
         else:
             t = None
             v = _d(value.value, encoding)
