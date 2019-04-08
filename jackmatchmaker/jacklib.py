@@ -386,48 +386,56 @@ except AttributeError:
 def get_version_string():
     if jlib.jack_get_version_string:
         return jlib.jack_get_version_string()
+
     return None
 
 
 def client_open(client_name, options, status, uuid=""):
     if jlib.jack_client_open:
         return jlib.jack_client_open(_e(client_name), options, status, _e(uuid) if uuid else None)
+
     return None
 
 
 def client_rename(client, new_name):
     if jlib.jack_client_rename:
         return jlib.jack_client_rename(client, _e(new_name))
+
     return None
 
 
 def client_close(client):
     if jlib.jack_client_close:
         return jlib.jack_client_close(client)
+
     return -1
 
 
 def client_name_size():
     if jlib.jack_client_name_size:
         return jlib.jack_client_name_size()
+
     return 0
 
 
 def get_client_name(client):
     if jlib.jack_get_client_name:
         return jlib.jack_get_client_name(client)
+
     return None
 
 
 def activate(client):
     if jlib.jack_activate:
         return jlib.jack_activate(client)
+
     return -1
 
 
 def deactivate(client):
     if jlib.jack_deactivate:
         return jlib.jack_deactivate(client)
+
     return -1
 
 
@@ -435,12 +443,14 @@ def deactivate(client):
 def get_client_pid(name):
     if jlib.jack_get_client_pid:
         return jlib.jack_get_client_pid(_e(name))
+
     return 0
 
 
 def is_realtime(client):
     if jlib.jack_is_realtime:
         return jlib.jack_is_realtime(client)
+
     return 0
 
 
@@ -472,6 +482,7 @@ except AttributeError:
 def cycle_wait(client):
     if jlib.jack_cycle_wait:
         return jlib.jack_cycle_wait(client)
+
     return 0
 
 
@@ -485,6 +496,7 @@ def set_process_thread(client, thread_callback, arg):
         global _thread_callback
         _thread_callback = JackThreadCallback(thread_callback)
         return jlib.jack_set_process_thread(client, _thread_callback, arg)
+
     return -1
 
 
@@ -661,6 +673,7 @@ def set_thread_init_callback(client, thread_init_callback, arg):
         global _thread_init_callback
         _thread_init_callback = JackThreadInitCallback(thread_init_callback)
         return jlib.jack_set_thread_init_callback(client, _thread_init_callback, arg)
+
     return -1
 
 
@@ -683,6 +696,7 @@ def set_process_callback(client, process_callback, arg):
         global _process_callback
         _process_callback = JackProcessCallback(process_callback)
         return jlib.jack_set_process_callback(client, _process_callback, arg)
+
     return -1
 
 
@@ -691,6 +705,7 @@ def set_freewheel_callback(client, freewheel_callback, arg):
         global _freewheel_callback
         _freewheel_callback = JackFreewheelCallback(freewheel_callback)
         return jlib.jack_set_freewheel_callback(client, _freewheel_callback, arg)
+
     return -1
 
 
@@ -699,6 +714,7 @@ def set_buffer_size_callback(client, bufsize_callback, arg):
         global _bufsize_callback
         _bufsize_callback = JackBufferSizeCallback(bufsize_callback)
         return jlib.jack_set_buffer_size_callback(client, _bufsize_callback, arg)
+
     return -1
 
 
@@ -707,6 +723,7 @@ def set_sample_rate_callback(client, srate_callback, arg):
         global _srate_callback
         _srate_callback = JackSampleRateCallback(srate_callback)
         return jlib.jack_set_sample_rate_callback(client, _srate_callback, arg)
+
     return -1
 
 
@@ -725,6 +742,7 @@ def set_client_rename_callback(client, client_rename_callback, arg):
         global _client_rename_callback
         _client_rename_callback = JackClientRenameCallback(client_rename_callback)
         return jlib.jack_set_client_rename_callback(client, _client_rename_callback, arg)
+
     return -1
 
 
@@ -733,6 +751,7 @@ def set_port_registration_callback(client, port_registration_callback, arg):
         global _port_registration_callback
         _port_registration_callback = JackPortRegistrationCallback(port_registration_callback)
         return jlib.jack_set_port_registration_callback(client, _port_registration_callback, arg)
+
     return -1
 
 
@@ -741,6 +760,7 @@ def set_port_connect_callback(client, connect_callback, arg):
         global _port_connect_callback
         _port_connect_callback = JackPortConnectCallback(connect_callback)
         return jlib.jack_set_port_connect_callback(client, _port_connect_callback, arg)
+
     return -1
 
 
@@ -750,6 +770,7 @@ def set_port_rename_callback(client, rename_callback, arg):
         global _port_rename_callback
         _port_rename_callback = JackPortRenameCallback(rename_callback)
         return jlib.jack_set_port_rename_callback(client, _port_rename_callback, arg)
+
     return -1
 
 
@@ -758,6 +779,7 @@ def set_graph_order_callback(client, graph_callback, arg):
         global _graph_callback
         _graph_callback = JackGraphOrderCallback(graph_callback)
         return jlib.jack_set_graph_order_callback(client, _graph_callback, arg)
+
     return -1
 
 
@@ -766,6 +788,7 @@ def set_xrun_callback(client, xrun_callback, arg):
         global _xrun_callback
         _xrun_callback = JackXRunCallback(xrun_callback)
         return jlib.jack_set_xrun_callback(client, _xrun_callback, arg)
+
     return -1
 
 
@@ -774,6 +797,7 @@ def set_latency_callback(client, latency_callback, arg):
         global _latency_callback
         _latency_callback = JackLatencyCallback(latency_callback)
         return jlib.jack_set_latency_callback(client, _latency_callback, arg)
+
     return -1
 
 
@@ -1051,6 +1075,7 @@ def port_type_size():
 def port_type_get_buffer_size(client, port_type):
     if jlib.jack_port_type_get_buffer_size:
         return jlib.jack_port_type_get_buffer_size(client, _e(port_type))
+
     return 0
 
 
@@ -1461,12 +1486,14 @@ def set_session_callback(client, session_callback, arg):
         global _session_callback
         _session_callback = JackSessionCallback(session_callback)
         return jlib.jack_set_session_callback(client, _session_callback, arg)
+
     return -1
 
 
 def session_reply(client, event):
     if jlib.jack_session_reply:
         return jlib.jack_session_reply(client, event)
+
     return -1
 
 
@@ -1484,6 +1511,7 @@ def client_get_uuid(client):
 def session_notify(client, target, type_, path):
     if jlib.jack_session_notify:
         return jlib.jack_session_notify(client, _e(target), type_, _e(path))
+
     return jack_session_command_t()
 
 
@@ -1495,6 +1523,7 @@ def session_commands_free(cmds):
 def get_uuid_for_client_name(client, client_name):
     if jlib.jack_get_uuid_for_client_name:
         return jlib.jack_get_uuid_for_client_name(client, _e(client_name))
+
     return None
 
 
@@ -1507,12 +1536,14 @@ def get_client_name_by_uuid(client, client_uuid):
 def reserve_client_name(client, name, uuid):
     if jlib.jack_reserve_client_name:
         return jlib.jack_reserve_client_name(client, _e(name), _e(uuid))
+
     return -1
 
 
 def client_has_session_callback(client, client_name):
     if jlib.jack_client_has_session_callback:
         return jlib.jack_client_has_session_callback(client, _e(client_name))
+
     return -1
 
 
@@ -1566,6 +1597,7 @@ except AttributeError:
 def custom_publish_data(client, key, data, size):
     if jlib.jack_custom_publish_data:
         return jlib.jack_custom_publish_data(client, _e(key), data, size)
+
     return -1
 
 
@@ -1587,6 +1619,7 @@ def custom_get_data(client, client_name, key):
 def custom_unpublish_data(client, key):
     if jlib.jack_custom_unpublish_data:
         return jlib.jack_custom_unpublish_data(client, _e(key))
+
     return -1
 
 
