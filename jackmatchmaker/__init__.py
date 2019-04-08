@@ -301,6 +301,7 @@ def main(args=None):
         else:
             matchmaker.run()
     except Exception as exc:
+        log.exception("Startup error")
         return str(exc)
     finally:
         matchmaker.close()
