@@ -240,6 +240,8 @@ class JackMatchmaker(object):
                         if not jacklib.port_connected_to(self._get_port(outport), inport):
                             log.info("Connecting ports '%s' --> '%s'.", outport, inport)
                             jacklib.connect(self.client, outport, inport)
+                        else:
+                            log.debug("Ports '%s' and '%s' already connected.", outport, inport)
             except KeyboardInterrupt:
                 return
 
