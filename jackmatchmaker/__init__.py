@@ -24,6 +24,11 @@ from .jacklib_helpers import get_jack_status_error_string
 from .version import __version__
 
 
+PROPERTY_CHANGE_MAP = {
+    jacklib.PropertyCreated: 'created',
+    jacklib.PropertyChanged: 'changed',
+    jacklib.PropertyDeleted: 'deleted'
+}
 log = logging.getLogger("jack-matchmaker")
 
 
@@ -123,42 +128,68 @@ class JackMatchmaker(object):
         except (IOError, OSError) as exc:
             log.error("Could not read '%s': %s", self.pattern_file, exc)
         else:
-            self.reg_callback()
+            self._refresh()
 
-    def reg_callback(self, port_id=None, action=1, *args):
+    def property_callback(self, subject, name, type_, *args):
+        try:
+            name = name.decode('utf-8')
+        except UnicodeDecodeError:
+            pass
+
+        log.debug("Property '%s' on subject '%s' %s", name, subject, PROPERTY_CHANGE_MAP[type_])
+        self._refresh()
+
+    def rename_callback(self, port_id, old_name, new_name, *args):
+        log.debug("Port name change: %s -> %s", old_name, new_name)
+        self._refresh()
+
+    def reg_callback(self, port_id, action, *args):
         if action == 0:
             return
 
-        if port_id is not None:
-            port = jacklib.port_by_id(self.client, port_id)
-            log.debug("New port: %s", jacklib.port_name(port))
+        port = jacklib.port_by_id(self.client, port_id)
+        log.debug("New port: %s", jacklib.port_name(port))
+        self._refresh()
 
+    def _refresh(self):
         inputs = list(flatten(self.get_ports(jacklib.JackPortIsInput)))
         outputs = list(flatten(self.get_ports(jacklib.JackPortIsOutput)))
 
         for ptn_output, ptn_input in self.patterns:
             for output in outputs:
-                log.debug("Match regex '%s' on output '%s'.", ptn_output.pattern, output)
+                if isinstance(output, tuple):
+                    real_output, output = output
+                else:
+                    real_output = None
+
+                log.debug("Match regex '%s' on output port '%s'.", ptn_output.pattern, output)
                 match_output = ptn_output.match(output)
+
                 if match_output:
                     log.debug("Found matching output port: %s", output)
-                    for input in inputs:
-                        # try to fill-in groups matches from output port
-                        # pattern into input port pattern
-                        subst = defaultdict(str, **match_output.groupdict())
-                        rx_input = ptn_input.format_map(subst)
 
-                        log.debug("Match regex '%s' on input '%s'.", ptn_input, input)
+                    # try to fill-in groups matches from output port
+                    # pattern into input port pattern
+                    subst = defaultdict(str, **match_output.groupdict())
+                    rx_input = ptn_input.format_map(subst)
 
-                        try:
-                            rx_input = re.compile(rx_input)
-                        except re.error as exc:
-                            log.error("Error in input port pattern '%s': %s", rx_input, exc)
-                        else:
+                    try:
+                        rx_input = re.compile(rx_input)
+                    except re.error as exc:
+                        log.error("Error in input port pattern '%s': %s", rx_input, exc)
+                    else:
+                        for input in inputs:
+                            if isinstance(input, tuple):
+                                real_input, input = input
+                            else:
+                                real_input = None
+
+                            log.debug("Match regex '%s' on input port '%s'.", ptn_input, input)
                             match_input = rx_input.match(input)
+
                             if match_input:
                                 log.debug("Found matching input port: %s", input)
-                                self.queue.put((output, input))
+                                self.queue.put((real_output or output, real_input or input))
 
     def shutdown_callback(self, *args):
         """
@@ -177,17 +208,33 @@ class JackMatchmaker(object):
         num_aliases, *aliases = jacklib.port_get_aliases(port)
         return list(aliases[:num_aliases])
 
-    def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
+    def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True,
+                  include_pretty_names=True):
         for port_name in jacklib.get_ports(self.client, '', '', type_):
             if port_name is None:
                 break
 
             port_name = port_name.decode('utf-8')
+            ports = [port_name]
 
             if include_aliases:
-                yield [port_name] + self._get_aliases(port_name)
-            else:
-                yield [port_name]
+                aliases = self._get_aliases(port_name)
+                ports.extend(aliases)
+
+            if include_pretty_names:
+                pretty_name = jacklib.get_port_pretty_name(self.client, port_name)
+
+                if pretty_name:
+                    try:
+                        client, port = port_name.split(':', 1)
+                    except ValueError:
+                        pass
+                    else:
+                        pretty_name = client + ':' + pretty_name
+
+                    ports.append((port_name, pretty_name))
+
+            yield ports
 
     def get_connections(self, ports=None):
         if ports is None:
@@ -204,8 +251,10 @@ class JackMatchmaker(object):
         for outport, inport in self.get_connections():
             print("%s\n    %s\n" % (outport, inport))
 
-    def list_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True):
-        print(self._format_ports(self.get_ports(type_, include_aliases)), end='\n\n')
+    def list_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True,
+                   include_pretty_names=True):
+        print(self._format_ports(self.get_ports(type_, include_aliases, include_pretty_names)),
+              end='\n\n')
 
     def _format_ports(self, ports):
         out = []
@@ -213,6 +262,8 @@ class JackMatchmaker(object):
             out.append(output[0])
 
             for alias in output[1:]:
+                if isinstance(alias, tuple):
+                    alias = alias[1]
                 out.append("    %s" % alias)
 
         return "\n".join(out)
@@ -222,9 +273,11 @@ class JackMatchmaker(object):
             try:
                 self.connect()
                 jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
+                jacklib.set_port_rename_callback(self.client, self.rename_callback, None)
+                jacklib.set_property_change_callback(self.client, self.property_callback, None)
                 jacklib.activate(self.client)
-                # call on-connection callback once to connect existing clients
-                self.reg_callback()
+                # Set up connections for existing clients/ports.
+                self._refresh()
 
                 while True:
                     try:
@@ -255,6 +308,8 @@ def main(args=None):
                      const="list_ins", help="List all JACK input ports")
     apg.add_argument('-a', '--aliases', action="store_true",
                      help="Include aliases when listing ports")
+    apg.add_argument('-n', '--pretty-names', action="store_true",
+                     help="Include pretty-names from port meta data when listing ports")
     apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
                      const="list_cnx", help="List all connections between JACK ports")
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
@@ -293,9 +348,11 @@ def main(args=None):
         if args.actions:
             matchmaker.connect()
             if 'list_outs' in args.actions:
-                matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases)
+                matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases,
+                                      include_pretty_names=args.pretty_names)
             if 'list_ins' in args.actions:
-                matchmaker.list_ports(jacklib.JackPortIsInput, include_aliases=args.aliases)
+                matchmaker.list_ports(jacklib.JackPortIsInput, include_aliases=args.aliases,
+                                      include_pretty_names=args.pretty_names)
             if 'list_cnx' in args.actions:
                 matchmaker.list_connections()
         else:
