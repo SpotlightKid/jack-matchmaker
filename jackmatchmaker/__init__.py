@@ -179,15 +179,23 @@ class JackMatchmaker(object):
                     if isinstance(match_output, re.Match):
                         # try to fill-in groups matches from output port
                         # pattern into input port pattern
-                        subst = defaultdict(str, **match_output.groupdict())
-                        ptn_input = ptn_input.format_map(subst)
+                        try:
+                            subst = defaultdict(str, **match_output.groupdict())
+                            ptn_input_xformed = ptn_input.format_map(subst)
+                        except Exception as exc:
+                            log.warn("Could not merge match groups into input pattern '%s': %s",
+                                     ptn_input, exc)
+                            ptn_input_xformed = ptn_input
+                    else:
+                        ptn_input_xformed = ptn_input
 
                     if (not self.exact_matching or
-                            (ptn_input.startswith('/') and ptn_input.endswith('/'))):
+                            (ptn_input_xformed.startswith('/') and ptn_input_xformed.endswith('/'))):
                         try:
-                            ptn_input = re.compile(ptn_input.strip('/'))
+                            ptn_input_xformed = re.compile(ptn_input.strip('/'))
                         except re.error as exc:
-                            log.error("Error in input port pattern '%s': %s", ptn_input, exc)
+                            log.error("Error in input port pattern '%s': %s",
+                                      ptn_input_xformed, exc)
                             continue
 
                     for input in inputs:
@@ -196,12 +204,12 @@ class JackMatchmaker(object):
                         else:
                             real_input = None
 
-                        if isinstance(ptn_input, re.Pattern):
+                        if isinstance(ptn_input_xformed, re.Pattern):
                             log.debug("Match regex '%s' on input port '%s'.",
-                                      ptn_input.pattern, input)
-                            match_input = ptn_input.match(input)
+                                      ptn_input_xformed.pattern, input)
+                            match_input = ptn_input_xformed.match(input)
                         else:
-                            match_input = ptn_input == input
+                            match_input = ptn_input_xformed == input
 
                         if match_input:
                             log.debug("Found matching input port: %s", input)
