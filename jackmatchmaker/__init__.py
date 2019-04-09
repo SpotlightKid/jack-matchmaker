@@ -24,12 +24,13 @@ from .jacklib_helpers import get_jack_status_error_string
 from .version import __version__
 
 
+__program__ = "jack-matchmaker"
 PROPERTY_CHANGE_MAP = {
     jacklib.PropertyCreated: 'created',
     jacklib.PropertyChanged: 'changed',
     jacklib.PropertyDeleted: 'deleted'
 }
-log = logging.getLogger("jack-matchmaker")
+log = logging.getLogger(__program__)
 
 
 def pairwise(iterable):
@@ -52,13 +53,14 @@ def posnum(arg):
 
 
 class JackMatchmaker(object):
-    def __init__(self, patterns, pattern_file=None, name="jack-matchmaker", connect_interval=3.0,
-                 connect_maxattempts=0):
+    def __init__(self, patterns, pattern_file=None, name=__program__, exact_matching=False,
+                 connect_interval=3.0, connect_maxattempts=0):
         self.patterns = []
         self.pattern_file = pattern_file
+        self.client_name = name
+        self.exact_matching = exact_matching
         self.connect_maxattempts = connect_maxattempts
         self.connect_interval = connect_interval
-        self.client_name = name
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
@@ -104,14 +106,17 @@ class JackMatchmaker(object):
             return jacklib.client_close(self.client)
 
     def add_patterns(self, ptn_output, ptn_input):
-        try:
-            ptn_output = re.compile(ptn_output)
-        except re.error as exc:
-            log.error("Error in output port pattern '%s': %s", ptn_output, exc)
-        else:
-            if not (ptn_output, ptn_input) in self.patterns:
-                log.debug("Added patterns: '%s' --> '%s'", ptn_output.pattern, ptn_input)
-                self.patterns.append((ptn_output, ptn_input))
+        if not self.exact_matching or (ptn_output.startswith('/') and ptn_output.endswith('/')):
+            try:
+                ptn_output = re.compile(ptn_output.strip('/'))
+            except re.error as exc:
+                log.error("Error in output port pattern '%s': %s", ptn_output, exc)
+                return
+
+        if not (ptn_output, ptn_input) in self.patterns:
+            pattern = ptn_output.pattern if isinstance(ptn_output, re.Pattern) else ptn_output
+            log.debug("Added patterns: '%s' --> '%s'", pattern, ptn_input)
+            self.patterns.append((ptn_output, ptn_input))
 
     def add_patterns_from_file(self, filename):
         with open(filename) as fp:
@@ -162,34 +167,45 @@ class JackMatchmaker(object):
                 else:
                     real_output = None
 
-                log.debug("Match regex '%s' on output port '%s'.", ptn_output.pattern, output)
-                match_output = ptn_output.match(output)
+                if isinstance(ptn_output, re.Pattern):
+                    log.debug("Match regex '%s' on output port '%s'.", ptn_output.pattern, output)
+                    match_output = ptn_output.match(output)
+                else:
+                    match_output = ptn_output == output
 
                 if match_output:
                     log.debug("Found matching output port: %s", output)
 
-                    # try to fill-in groups matches from output port
-                    # pattern into input port pattern
-                    subst = defaultdict(str, **match_output.groupdict())
-                    rx_input = ptn_input.format_map(subst)
+                    if isinstance(match_output, re.Match):
+                        # try to fill-in groups matches from output port
+                        # pattern into input port pattern
+                        subst = defaultdict(str, **match_output.groupdict())
+                        ptn_input = ptn_input.format_map(subst)
 
-                    try:
-                        rx_input = re.compile(rx_input)
-                    except re.error as exc:
-                        log.error("Error in input port pattern '%s': %s", rx_input, exc)
-                    else:
-                        for input in inputs:
-                            if isinstance(input, tuple):
-                                real_input, input = input
-                            else:
-                                real_input = None
+                    if (not self.exact_matching or
+                            (ptn_input.startswith('/') and ptn_input.endswith('/'))):
+                        try:
+                            ptn_input = re.compile(ptn_input.strip('/'))
+                        except re.error as exc:
+                            log.error("Error in input port pattern '%s': %s", ptn_input, exc)
+                            continue
 
-                            log.debug("Match regex '%s' on input port '%s'.", ptn_input, input)
-                            match_input = rx_input.match(input)
+                    for input in inputs:
+                        if isinstance(input, tuple):
+                            real_input, input = input
+                        else:
+                            real_input = None
 
-                            if match_input:
-                                log.debug("Found matching input port: %s", input)
-                                self.queue.put((real_output or output, real_input or input))
+                        if isinstance(ptn_input, re.Pattern):
+                            log.debug("Match regex '%s' on input port '%s'.",
+                                      ptn_input.pattern, input)
+                            match_input = ptn_input.match(input)
+                        else:
+                            match_input = ptn_input == input
+
+                        if match_input:
+                            log.debug("Found matching input port: %s", input)
+                            self.queue.put((real_output or output, real_input or input))
 
     def shutdown_callback(self, *args):
         """
@@ -300,8 +316,10 @@ class JackMatchmaker(object):
 
 
 def main(args=None):
-    ap = argparse.ArgumentParser(prog='jack-matchmaker', description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(prog=__program__, description=__doc__.splitlines()[0])
     apg = ap.add_argument_group('actions', 'Listing ports and connections')
+    apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
+                     const="list_cnx", help="List all connections between JACK ports")
     apg.add_argument('-o', '--list-outputs', dest="actions", action="append_const",
                      const="list_outs", help="List all JACK output ports")
     apg.add_argument('-i', '--list-inputs', dest="actions", action="append_const",
@@ -310,12 +328,14 @@ def main(args=None):
                      help="Include aliases when listing ports")
     apg.add_argument('-n', '--pretty-names', action="store_true",
                      help="Include pretty-names from port meta data when listing ports")
-    apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
-                     const="list_cnx", help="List all connections between JACK ports")
     ap.add_argument('-p', '--pattern-file', metavar="FILE",
                     help="Read pattern pairs from FILE (one pattern per line)")
-    apg.add_argument('--client-name', metavar='NAME',
-                     help="Set JACK client name to NAME (default: %(default)s)")
+    ap.add_argument('-e', '--exact-matching', action="store_true",
+                    help="Enable literal matching mode. Patterns must match port names exactly. "
+                         "To still use regular expressions, mark them with slashes, e.g. "
+                         "'/system:out_\\d+/'.")
+    ap.add_argument('-N', '--client-name', metavar='NAME', default=__program__,
+                    help="Set JACK client name to NAME (default: '%(default)s')")
     ap.add_argument('-I', '--connect-interval', type=posnum, default=3.0, metavar="SECONDS",
                     help="Interval between attempts to connect to JACK server "
                     " (default: %(default)s)")
@@ -336,6 +356,7 @@ def main(args=None):
     if args.actions or args.patterns or args.pattern_file:
         try:
             matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file,
+                                        name=args.client_name, exact_matching=args.exact_matching,
                                         connect_interval=args.connect_interval,
                                         connect_maxattempts=args.max_attempts)
         except RuntimeError as exc:
