@@ -1,5 +1,4 @@
 include LICENSE
 include example_patterns.txt
-exclude jackmatchmaker/alsainfo.py
 
 prune jacklib-examples
