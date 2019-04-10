@@ -116,7 +116,7 @@ substitution value for a placeholder corresponding to the name of group in
 the input port pattern. Placeholders use the `Python string formatting`_
 syntax.
 
-Example:
+Example::
 
     jack-matchmaker \
         'mysynth:out_(?P<channel>[lr])_\d+$' 'myfx:in_{channel}$'
