@@ -4,6 +4,26 @@ jack-matchmaker
 Auto-connect JACK_ ports as they appear and when they match the port patterns
 given on the command line or read from a file.
 
+|version| |status| |license| |python_versions| |wheel|
+
+.. |version| image:: http://badge.kloud51.com/pypi/v/jack-matchmaker.svg
+    :target: https://pypi.org/project/jack-matchmaker
+    :alt: Latest version
+
+.. |status| image:: http://badge.kloud51.com/pypi/s/jack-matchmaker.svg
+    :alt: Project status
+
+.. |license| image:: http://badge.kloud51.com/pypi/l/jack-matchmaker.svg
+    :target: LICENSE_
+    :alt: GNU General Public License 2
+
+.. |python_versions| image:: http://badge.kloud51.com/pypi/py_versions/jack-matchmaker.svg
+    :alt: Python versions
+
+.. |wheel| image:: http://badge.kloud51.com/pypi/w/jack-matchmaker.svg
+    :target: https://pypi.org/project/jack-matchmaker/#files
+    :alt: Wheel available
+
 
 Description
 -----------
