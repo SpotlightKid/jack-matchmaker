@@ -159,7 +159,7 @@ and so on to ``myfx:in_l`` and all ports named ``mysynth:out_r_1``,
 
 
 Pattern files
--------------
+~~~~~~~~~~~~~
 
 In addition to or instead of listing port patterns as as positional arguments
 on the command line, port patterns can also be put in a text file.
