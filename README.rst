@@ -141,12 +141,23 @@ the start or the end of each line is stripped.
 
 Example file::
 
-    # left channel
-    .*:out_l
+    # Left channel
+    # This will match output ports of any client named
+    # 'out_1', 'out_l', 'output_1' or 'output_l'
+    .*:out(put)?_(1|l)$
         system:playback_1
 
-    # right channel
-    .*:out_r
+    # Right channel
+    # This will match output ports of any client named
+    # 'out_2', 'out_r', 'output_2' or 'output_r'
+    .*:out(put)?_(2|r)$
+        system:playback_2
+
+    # Another common naming scheme for output ports:
+    .*:Out L
+        system:playback_1
+
+    .*:Out R
         system:playback_2
 
 When you send a HUP signal to a running ``jack-matchmaker`` process, the file
