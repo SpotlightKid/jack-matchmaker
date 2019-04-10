@@ -199,12 +199,12 @@ defaults to ``0`` (i.e. infinite attempts or until interrupted).
 default. Change this interval with the option ``-I/--connect-interval``.
 
 When ``jack-matchmaker`` is connected and the JACK server is stopped, the
-shutdown event is signalled to ``jack-matchmaker``, which then enters the
+shutdown event is signaled to ``jack-matchmaker``, which then enters the
 connection loop described above again.
 
 To disconnect from the JACK server and stop ``jack-matchmaker``, send an INT
 signal to the process, usually done by pressing Control-C in the terminal
-wher ``jack-matchmaker`` is running.
+where ``jack-matchmaker`` is running.
 
 
 Requirements
@@ -237,8 +237,8 @@ module taken from falkTX's Cadence_ application (but it was heavily
 modified and extended since).
 
 It was inspired by jack-autoconnect_, which also auto-connects JACK ports, but
-doesn't support port aliases or meta dat pretty-names. jack-autoconnect is also
-written in C++, and therefore probably faster and less memory hungry.
+doesn't support port aliases or meta data pretty-names. jack-autoconnect is
+also written in C++, and therefore probably faster and less memory hungry.
 
 The idea to read ports (patterns) from a file and re-read them on the HUP
 signal was "inspired" by aj-snapshot_.
