@@ -54,9 +54,11 @@ Installation
 
 Before you install the software, please refer to the section "Requirements".
 
-Then simply do::
+Then simply do:
 
-    pip install jack-matchmaker
+.. code-block:: shell-session
+
+    $ pip install jack-matchmaker
 
 There is also an `AUR package`_ available for Arch Linux users.
 
@@ -72,26 +74,32 @@ Examples
 ~~~~~~~~
 
 Automatically connect the first two ports of Fluidsynth to the audio outs
-using *exact matching* mode::
+using *exact matching* mode:
 
-    jack-matchmaker -e \
-        "fluidsynth:l_01" "system:playback_1" \
-        "fluidsynth:r_01" "system:playback_2"
+.. code-block:: shell-session
+
+    $ jack-matchmaker -e \
+        fluidsynth:l_01 system:playback_1 \
+        fluidsynth:r_01 system:playback_2
 
 Both the output port and the input port patterns can be regular expressions.
 If a match is found on an output port, the matching port will be connected to
-*all* input ports, which match the corresponding input port pattern::
+*all* input ports, which match the corresponding input port pattern:
 
-    jack-matchmaker \
-        "fluidsynth:l_\d+" "system:playback_[13]" \
-        "fluidsynth:r_\d+" "system:playback_[24]"
+.. code-block:: shell-session
+
+    $ jack-matchmaker \
+        'fluidsynth:l_\d+' 'system:playback_[13]' \
+        'fluidsynth:r_\d+' 'system:playback_[24]'
 
 You can also use named regular expression groups in the output port pattern and
 fill the port name sub-strings they match to into placeholders in the input
-port pattern::
+port pattern:
 
-    jack-matchmaker \
-        "system:midi_capture_(?P<num>\d+)$" "mydaw:midi_in_track_{num}"
+.. code-block:: shell-session
+
+    $ jack-matchmaker \
+        'system:midi_capture_(?P<num>\d+)$' 'mydaw:midi_in_track_{num}'
 
 
 Regular expression and exact matching
@@ -118,9 +126,11 @@ To use exact string matching instead of regular expression matching, use the
 ``-e`` resp. ``--exact-matching`` command line option. When this option is
 given, patterns must match port names (or aliases or pretty-names) exactly.
 You can still use regular expression patterns by enclosing a pattern in forward
-slashes, e.g. like so::
+slashes, e.g. like so:
 
-    jack-matchmaker -e system:capture_1 '/myclient:in_l\d+/'
+.. code-block:: shell-session
+
+    $ jack-matchmaker -e system:capture_1 '/myclient:in_l\d+/'
 
 All this applies to pattern given as positional command line arguments *and* to
 patterns listed in a pattern file (see below).
@@ -136,9 +146,11 @@ substitution value for a placeholder corresponding to the name of group in
 the input port pattern. Placeholders use the `Python string formatting`_
 syntax.
 
-Example::
+Example:
 
-    jack-matchmaker \
+.. code-block:: shell-session
+
+    $ jack-matchmaker \
         'mysynth:out_(?P<channel>[lr])_\d+$' 'myfx:in_{channel}$'
 
 This would connect all ports named ``mysynth:out_l_1``, ``mysynth:out_l_2``
@@ -159,7 +171,9 @@ output port pattern, and the second specifies the input port pattern. Empty
 lines and lines starting with a hash-sign (``#``) are ignored and whitespace at
 the start or the end of each line is stripped.
 
-Example file::
+Example file:
+
+.. code-block::
 
     # Left channel
     # This will match output ports of any client named
