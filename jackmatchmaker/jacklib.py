@@ -1780,6 +1780,7 @@ def get_property(subject, key, encoding=ENCODING):
     value_c = c_char_p()
     type_c = c_char_p()
     ret = jlib.jack_get_property(subject, _e(key), byref(value_c), byref(type_c))
+    value = value_c.value
 
     if ret != -1:
         decode_value = True
@@ -1800,7 +1801,7 @@ def get_property(subject, key, encoding=ENCODING):
             try:
                 value = _d(value_c.value, encoding)
             except UnicodeDecodeError:
-                value = value_c.value
+                pass
 
         free(value_c)
         return Property(key, value, type_)
