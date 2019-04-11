@@ -1678,7 +1678,7 @@ try:
 
     jlib.jack_set_property.argtypes = [
         POINTER(jack_client_t),
-        POINTER(jack_uuid_t),
+        jack_uuid_t,
         c_char_p,
         c_char_p,
         c_char_p
