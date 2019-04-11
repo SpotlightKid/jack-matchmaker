@@ -1859,11 +1859,13 @@ def set_port_property(client, port, key, value, type=None, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
 
-    return set_property(client, port_uuid(port), key, value, type, encoding)
+    uuid = port_uuid(port)
+    return set_property(client, uuid, key, value, type, encoding) if uuid != -1 else -1
 
 
 def set_port_pretty_name(client, port, value, encoding=ENCODING):
-    return set_port_property(client, port, JACK_METADATA_PRETTY_NAME, value, encoding)
+    return set_port_property(client, port, JACK_METADATA_PRETTY_NAME, value, 'text/plain',
+                             encoding)
 
 
 def set_property_change_callback(client, callback, arg=None):
