@@ -22,7 +22,7 @@ for name, type_ in sorted(position._fields_):
     value = getattr(position, name)
     if name == 'padding':
         value = list(value)
-    print("{}: {}".format(name, value))
+    print("{}: {}".format(name, value), file=sys.stderr)
 
 if transport_state == jacklib.JackTransportStopped:
     print("JACK transport stopped, starting it now.")
