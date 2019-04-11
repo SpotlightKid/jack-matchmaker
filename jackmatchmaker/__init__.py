@@ -20,7 +20,7 @@ except ImportError:
     import Queue as queue
 
 from . import jacklib
-from .jacklib_helpers import get_jack_status_error_string
+from .jacklib_helpers import c_char_p_p_to_list, get_jack_status_error_string
 from .version import __version__
 
 
@@ -234,11 +234,7 @@ class JackMatchmaker(object):
 
     def get_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True,
                   include_pretty_names=True):
-        for port_name in jacklib.get_ports(self.client, '', '', type_):
-            if port_name is None:
-                break
-
-            port_name = port_name.decode('utf-8')
+        for port_name in c_char_p_p_to_list(jacklib.get_ports(self.client, '', '', type_)):
             ports = [port_name]
 
             if include_aliases:
