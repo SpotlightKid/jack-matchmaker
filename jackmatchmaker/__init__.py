@@ -61,6 +61,7 @@ class JackMatchmaker(object):
         self.exact_matching = exact_matching
         self.connect_maxattempts = connect_maxattempts
         self.connect_interval = connect_interval
+        self.default_encoding = jacklib.ENCODING
 
         if self.pattern_file:
             self.add_patterns_from_file(self.pattern_file)
@@ -136,16 +137,14 @@ class JackMatchmaker(object):
             self._refresh()
 
     def property_callback(self, subject, name, type_, *args):
-        try:
-            name = name.decode('utf-8')
-        except UnicodeDecodeError:
-            pass
-
-        log.debug("Property '%s' on subject '%s' %s", name, subject, PROPERTY_CHANGE_MAP[type_])
+        name = name.decode(self.default_encoding, errors='ignore')
+        log.debug("Property '%s' on subject %s %s.", name, subject, PROPERTY_CHANGE_MAP[type_])
         self._refresh()
 
     def rename_callback(self, port_id, old_name, new_name, *args):
-        log.debug("Port name change: %s -> %s", old_name, new_name)
+        old_name = old_name.decode(self.default_encoding, errors='ignore')
+        new_name = new_name.decode(self.default_encoding, errors='ignore')
+        log.debug("Port name %s changed to %s.", old_name, new_name)
         self._refresh()
 
     def reg_callback(self, port_id, action, *args):
@@ -153,7 +152,7 @@ class JackMatchmaker(object):
             return
 
         port = jacklib.port_by_id(self.client, port_id)
-        log.debug("New port: %s", jacklib.port_name(port))
+        log.debug("New port registered: %s", jacklib.port_name(port))
         self._refresh()
 
     def _refresh(self):
