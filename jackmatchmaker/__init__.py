@@ -123,12 +123,14 @@ class JackMatchmaker(object):
         with open(filename) as fp:
             stripfilter = (line.strip() for line in fp)
             linefilter = (line for line in stripfilter if line and not line.startswith('#'))
+
             for ptn_output, ptn_input in pairwise(linefilter):
                 self.add_patterns(ptn_output, ptn_input)
 
     def reread_pattern_file(self, sig_no, frame):
         log.debug("HUP signal received. Re-reading patterns from '%s'.", self.pattern_file)
         self.patterns = []
+
         try:
             self.add_patterns_from_file(self.pattern_file)
         except (IOError, OSError) as exc:
@@ -188,8 +190,8 @@ class JackMatchmaker(object):
                     else:
                         ptn_input_xformed = ptn_input
 
-                    if (not self.exact_matching or
-                            (ptn_input_xformed.startswith('/') and ptn_input_xformed.endswith('/'))):
+                    if not self.exact_matching or (ptn_input_xformed.startswith('/') and
+                                                   ptn_input_xformed.endswith('/')):
                         try:
                             ptn_input_xformed = re.compile(ptn_input.strip('/'))
                         except re.error as exc:
