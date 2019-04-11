@@ -69,7 +69,7 @@ def get_jack_status_error_string(cStatus):
 # -------------------------------------------------------------------------------------------------
 # Convert C char** -> Python list
 
-def c_char_p_p_to_list(c_char_p_p):
+def c_char_p_p_to_list(c_char_p_p, encoding=jacklib.ENCODING, errors='ignore'):
     i = 0
     retList = []
 
@@ -78,11 +78,11 @@ def c_char_p_p_to_list(c_char_p_p):
 
     while True:
         new_char_p = c_char_p_p[i]
-        if new_char_p:
-            retList.append(str(new_char_p, encoding="utf-8"))
-            i += 1
-        else:
+        if not new_char_p:
             break
+
+        retList.append(new_char_p.decode(encoding=encoding, errors=errors))
+        i += 1
 
     jacklib.free(c_char_p_p)
     return retList
