@@ -1171,8 +1171,9 @@ jlib.jack_port_by_id.argtypes = [POINTER(jack_client_t), jack_port_id_t]
 jlib.jack_port_by_id.restype = POINTER(jack_port_t)
 
 
-def get_ports(client, port_name_pattern, type_name_pattern, flags):
-    return jlib.jack_get_ports(client, _e(port_name_pattern), _e(type_name_pattern), flags)
+def get_ports(client, port_name_pattern=None, type_name_pattern=None, flags=0):
+    return jlib.jack_get_ports(client, _e(port_name_pattern or ''),
+                               _e(type_name_pattern or ''), flags)
 
 
 def port_by_name(client, port_name):
