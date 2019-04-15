@@ -193,7 +193,7 @@ class JackMatchmaker(object):
                     if not self.exact_matching or (ptn_input_xformed.startswith('/') and
                                                    ptn_input_xformed.endswith('/')):
                         try:
-                            ptn_input_xformed = re.compile(ptn_input.strip('/'))
+                            ptn_input_xformed = re.compile(ptn_input_xformed.strip('/'))
                         except re.error as exc:
                             log.error("Error in input port pattern '%s': %s",
                                       ptn_input_xformed, exc)
