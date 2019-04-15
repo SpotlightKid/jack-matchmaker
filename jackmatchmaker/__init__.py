@@ -139,13 +139,19 @@ class JackMatchmaker(object):
             self._refresh()
 
     def property_callback(self, subject, name, type_, *args):
-        name = name.decode(self.default_encoding, errors='ignore')
+        if name:
+            name = name.decode(self.default_encoding, errors='ignore')
+
         log.debug("Property '%s' on subject %s %s.", name, subject, PROPERTY_CHANGE_MAP[type_])
         self._refresh()
 
     def rename_callback(self, port_id, old_name, new_name, *args):
-        old_name = old_name.decode(self.default_encoding, errors='ignore')
-        new_name = new_name.decode(self.default_encoding, errors='ignore')
+        if old_name:
+            old_name = old_name.decode(self.default_encoding, errors='ignore')
+
+        if new_name:
+            new_name = new_name.decode(self.default_encoding, errors='ignore')
+
         log.debug("Port name %s changed to %s.", old_name, new_name)
         self._refresh()
 
