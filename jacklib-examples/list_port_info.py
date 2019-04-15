@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from itertools import chain
 
 from jackmatchmaker import jacklib
 from jackmatchmaker.jacklib_helpers import c_char_p_p_to_list, get_jack_status_error_string
