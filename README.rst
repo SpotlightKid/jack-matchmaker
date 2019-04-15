@@ -120,17 +120,17 @@ start of the pattern, e.g. ``.*client:out_\d``.
 
 To anchor the pattern to the end of the matched string as well, use a ``$``
 at the end of the pattern. E.g ``client:out_[12]$`` will match ``client:out_1``
-and ``client:out_2``, but not `client:out_10``, ``client:out_21`` etc.
+and ``client:out_2``, but not ``client:out_10``, ``client:out_21`` etc.
 
 To use exact string matching instead of regular expression matching, use the
-``-e`` resp. ``--exact-matching`` command line option. When this option is
-given, patterns must match port names (or aliases or pretty-names) exactly.
-You can still use regular expression patterns by enclosing a pattern in forward
+``-e``, ``--exact-matching`` command line option. When this option is given,
+patterns must match port names (or aliases or pretty-names) exactly. You can
+still use regular expression patterns by enclosing a pattern in forward
 slashes, e.g. like so:
 
 .. code-block:: shell-session
 
-    $ jack-matchmaker -e system:capture_1 '/myclient:in_l\d+/'
+    $ jack-matchmaker -e system:capture_1 '/myclient:in_l_\d+/'
 
 All this applies to pattern given as positional command line arguments *and* to
 patterns listed in a pattern file (see below).
@@ -164,12 +164,12 @@ Pattern files
 In addition to or instead of listing port patterns as as positional arguments
 on the command line, port patterns can also be put in a text file.
 
-The ``-p/--pattern-file`` option instructs the program to read the patterns
-from the file path given as the option value. The file must list one port
-pattern per line, where the first line of every pair of two lines specifies the
-output port pattern, and the second specifies the input port pattern. Empty
-lines and lines starting with a hash-sign (``#``) are ignored and whitespace at
-the start or the end of each line is stripped.
+The ``-p``, ``--pattern-file`` option instructs the program to read the
+patterns from the file path given as the option value. The file must list one
+port pattern per line, where the first line of every pair of two lines
+specifies the output port pattern, and the second specifies the input port
+pattern. Empty lines and lines starting with a hash-sign (``#``) are ignored
+and whitespace at the start or the end of each line is stripped.
 
 Example file:
 
@@ -207,10 +207,10 @@ JACK server connection
 ``jack-matchmaker`` needs a connection to a running JACK server to be notified
 about new ports. On start-up it tries to connect to JACK until a connection can
 be established or the maximum number of connection attempts is exceeded. This
-number can be set with the command line option ``-m/--max-attempts``, which
-defaults to ``0`` (i.e. infinite attempts or until interrupted).
+number can be set with the command line option ``-m``, ``--max-attempts``,
+which defaults to ``0`` (i.e. infinite attempts or until interrupted).
 ``jack-matchmaker`` waits for 3 seconds between each connection attempt by
-default. Change this interval with the option ``-I/--connect-interval``.
+default. Change this interval with the option ``-I``, ``--connect-interval``.
 
 When ``jack-matchmaker`` is connected and the JACK server is stopped, the
 shutdown event is signaled to ``jack-matchmaker``, which then enters the
