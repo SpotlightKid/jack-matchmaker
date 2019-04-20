@@ -1781,6 +1781,13 @@ def get_properties(subject, encoding=ENCODING):
     return results
 
 
+def get_client_properties(client, clientuuid, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return get_properties(uuid_parse(clientuuid), encoding)
+
+
 def get_port_properties(client, port, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
