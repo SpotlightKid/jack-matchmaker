@@ -1856,7 +1856,7 @@ def remove_port_properties(client, port):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
 
-    return remove_properties(client, port)
+    return remove_properties(client, port_uuid(port))
 
 
 def remove_property(client, subject, key, encoding=ENCODING):
@@ -1867,7 +1867,7 @@ def remove_port_property(client, port, key, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
 
-    return remove_property(client, port, key, encoding)
+    return remove_property(client, port_uuid(port), key, encoding)
 
 
 def set_property(client, subject, key, value, type=None, encoding=ENCODING):
