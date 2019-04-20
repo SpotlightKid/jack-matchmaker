@@ -1538,6 +1538,7 @@ def get_uuid_for_client_name(client, client_name):
 def get_client_name_by_uuid(client, client_uuid):
     if jlib.jack_get_client_name_by_uuid:
         return jlib.jack_get_client_name_by_uuid(client, _e(client_uuid))
+
     return None
 
 
