@@ -1832,6 +1832,13 @@ def get_property(subject, key, encoding=ENCODING):
         return Property(key, value, type_)
 
 
+def get_client_property(client, clientuuid, key, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return get_property(uuid_parse(clientuuid), key, encoding)
+
+
 def get_port_property(client, port, key, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
@@ -1852,6 +1859,13 @@ def remove_properties(client, subject):
     return jlib.jack_remove_property(client, subject)
 
 
+def remove_client_properties(client, clientuuid):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return remove_properties(client, uuid_parse(clientuuid))
+
+
 def remove_port_properties(client, port):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
@@ -1861,6 +1875,13 @@ def remove_port_properties(client, port):
 
 def remove_property(client, subject, key, encoding=ENCODING):
     return jlib.jack_remove_property(client, subject, _e(key, encoding))
+
+
+def remove_client_property(client, port, key, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return remove_property(client, uuid_parse(clientuuid), key, encoding)
 
 
 def remove_port_property(client, port, key, encoding=ENCODING):
@@ -1878,6 +1899,14 @@ def set_property(client, subject, key, value, type=None, encoding=ENCODING):
         value = _e(value, encoding)
 
     return jlib.jack_set_property(client, subject, _e(key, encoding), value, type)
+
+
+def set_client_property(client, clientuuid, key, value, type=None, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    uuid = uuid_parse(clientuuid)
+    return set_property(client, uuid, key, value, type, encoding) if uuid != -1 else -1
 
 
 def set_port_property(client, port, key, value, type=None, encoding=ENCODING):
