@@ -1790,6 +1790,9 @@ def get_property(subject, key, encoding=ENCODING):
             try:
                 type_ = _d(type_c.value, encoding)
             except UnicodeDecodeError:
+                # If type can't be decoded, we assume it's neither a mimetype
+                # nor a URI, so we don't know how to interpret it and won't use
+                # it to decide whether to decode the property value.
                 type_ = type_c.value
             else:
                 decode_value = type_.startswith('text/')
