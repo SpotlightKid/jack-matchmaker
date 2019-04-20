@@ -1487,6 +1487,12 @@ try:
 except AttributeError:
     jlib.jack_client_has_session_callback = None
 
+try:
+    jlib.jack_uuid_parse.argtypes = [c_char_p, POINTER(jack_uuid_t)]
+    jlib.jack_uuid_parse.restype = c_int
+except AttributeError:
+    jlib.jack_uuid_parse = None
+
 
 def set_session_callback(client, session_callback, arg):
     if jlib.jack_set_session_callback:
@@ -1555,6 +1561,14 @@ def client_has_session_callback(client, client_name):
 
     return -1
 
+
+def uuid_parse(uuid_cstr):
+    if jlib.jack_uuid_parse:
+        uuid = jack_uuid_t()
+        res = jlib.jack_uuid_parse(uuid_cstr, byref(uuid))
+        return uuid if res != -1 else None
+
+    return -1
 
 # -------------------------------------------------------------------------------------------------
 # Custom
