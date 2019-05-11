@@ -32,6 +32,12 @@ PROPERTY_CHANGE_MAP = {
 }
 log = logging.getLogger(__program__)
 
+if not hasattr(re, 'Pattern'):
+    re.Pattern = re._pattern_type
+
+if not hasattr(re, 'Match'):
+    re.Match = type(re.match('', ''))
+
 
 def pairwise(iterable):
     """s -> (s0,s1), (s2,s3), (s4, s5), ..."""
