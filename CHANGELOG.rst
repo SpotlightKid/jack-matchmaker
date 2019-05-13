@@ -5,6 +5,17 @@ For details and minor changes, please see the `version control log messages
 <https://github.com/SpotlightKid/jack-matchmaker/commits/master>`_.
 
 
+2019-05-13 version 0.7.1
+------------------------
+
+Fixes:
+
+* Fix incompatibility with Python < 3.7, due to use of ``re.Pattern`` and
+  ``re.Match``, which were only added in Python 3.7.
+
+  Python 3.4 is still supported, but will be dropped in next major release.
+
+
 2019-04-15 version 0.7.0
 ------------------------
 
