@@ -1776,7 +1776,7 @@ def get_port_properties(client, port, encoding=ENCODING):
 def get_property(subject, key, encoding=ENCODING):
     # FIXME: how to handle non-null terminated data in value?
     #        We wouldn't know the length of the data in the value buffer.
-    #        This seems to be an oversight in teh JACK meta data API.
+    #        This seems to be an oversight in the JACK meta data API.
     value_c = c_char_p()
     type_c = c_char_p()
     ret = jlib.jack_get_property(subject, _e(key), byref(value_c), byref(type_c))
