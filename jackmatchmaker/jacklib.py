@@ -1487,6 +1487,12 @@ try:
 except AttributeError:
     jlib.jack_client_has_session_callback = None
 
+try:
+    jlib.jack_uuid_parse.argtypes = [c_char_p, POINTER(jack_uuid_t)]
+    jlib.jack_uuid_parse.restype = c_int
+except AttributeError:
+    jlib.jack_uuid_parse = None
+
 
 def set_session_callback(client, session_callback, arg):
     if jlib.jack_set_session_callback:
@@ -1538,6 +1544,7 @@ def get_uuid_for_client_name(client, client_name):
 def get_client_name_by_uuid(client, client_uuid):
     if jlib.jack_get_client_name_by_uuid:
         return jlib.jack_get_client_name_by_uuid(client, _e(client_uuid))
+
     return None
 
 
@@ -1554,6 +1561,14 @@ def client_has_session_callback(client, client_name):
 
     return -1
 
+
+def uuid_parse(uuid_cstr):
+    if jlib.jack_uuid_parse:
+        uuid = jack_uuid_t()
+        res = jlib.jack_uuid_parse(uuid_cstr, byref(uuid))
+        return uuid if res != -1 else None
+
+    return -1
 
 # -------------------------------------------------------------------------------------------------
 # Custom
@@ -1766,6 +1781,13 @@ def get_properties(subject, encoding=ENCODING):
     return results
 
 
+def get_client_properties(client, clientuuid, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return get_properties(uuid_parse(clientuuid), encoding)
+
+
 def get_port_properties(client, port, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
@@ -1789,6 +1811,9 @@ def get_property(subject, key, encoding=ENCODING):
             try:
                 type_ = _d(type_c.value, encoding)
             except UnicodeDecodeError:
+                # If type can't be decoded, we assume it's neither a mimetype
+                # nor a URI, so we don't know how to interpret it and won't use
+                # it to decide whether to decode the property value.
                 type_ = type_c.value
             else:
                 decode_value = type_.startswith('text/')
@@ -1805,6 +1830,13 @@ def get_property(subject, key, encoding=ENCODING):
 
         free(value_c)
         return Property(key, value, type_)
+
+
+def get_client_property(client, clientuuid, key, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return get_property(uuid_parse(clientuuid), key, encoding)
 
 
 def get_port_property(client, port, key, encoding=ENCODING):
@@ -1827,22 +1859,36 @@ def remove_properties(client, subject):
     return jlib.jack_remove_property(client, subject)
 
 
+def remove_client_properties(client, clientuuid):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return remove_properties(client, uuid_parse(clientuuid))
+
+
 def remove_port_properties(client, port):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
 
-    return remove_properties(client, port)
+    return remove_properties(client, port_uuid(port))
 
 
 def remove_property(client, subject, key, encoding=ENCODING):
     return jlib.jack_remove_property(client, subject, _e(key, encoding))
 
 
+def remove_client_property(client, port, key, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    return remove_property(client, uuid_parse(clientuuid), key, encoding)
+
+
 def remove_port_property(client, port, key, encoding=ENCODING):
     if not isinstance(port, POINTER(jack_port_t)):
         port = port_by_name(client, port)
 
-    return remove_property(client, port, key, encoding)
+    return remove_property(client, port_uuid(port), key, encoding)
 
 
 def set_property(client, subject, key, value, type=None, encoding=ENCODING):
@@ -1853,6 +1899,14 @@ def set_property(client, subject, key, value, type=None, encoding=ENCODING):
         value = _e(value, encoding)
 
     return jlib.jack_set_property(client, subject, _e(key, encoding), value, type)
+
+
+def set_client_property(client, clientuuid, key, value, type=None, encoding=ENCODING):
+    if isinstance(clientuuid, str):
+        clientuuid = get_uuid_for_client_name(client, clientuuid)
+
+    uuid = uuid_parse(clientuuid)
+    return set_property(client, uuid, key, value, type, encoding) if uuid != -1 else -1
 
 
 def set_port_property(client, port, key, value, type=None, encoding=ENCODING):
