@@ -104,7 +104,7 @@ class JackMatchmaker(object):
             log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
             time.sleep(self.connect_interval)
 
-        jacklib.on_shutdown(self.client, self.shutdown_callback, 'blah')
+        jacklib.on_shutdown(self.client, self.shutdown_callback, None)
         log.debug("Client connected, UUID: %s", jacklib.client_get_uuid(self.client))
 
     def close(self):
@@ -385,6 +385,7 @@ def main(args=None):
     try:
         if args.actions:
             matchmaker.connect()
+
             if 'list_outs' in args.actions:
                 matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases,
                                       include_pretty_names=args.pretty_names)
@@ -395,6 +396,8 @@ def main(args=None):
                 matchmaker.list_connections()
         else:
             matchmaker.run()
+    except KeyboardInterrupt:
+        print('')
     except Exception as exc:
         log.exception("Startup error")
         return str(exc)
