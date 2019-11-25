@@ -362,12 +362,15 @@ def main(args=None):
                     " (default: %(default)s)")
     ap.add_argument('-m', '--max-attempts', type=posnum, default=0, metavar="NUM",
                     help="Max. number of attempts to connect to JACK server (default: 0=infinite)")
-    ap.add_argument('-v', '--verbose', action="store_true", help="Be verbose")
+    ap.add_argument('-v', '--verbosity', nargs='?', metavar="LABEL",
+                    choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], const='DEBUG', default='INFO',
+                    help="Set verbosity level. (choices: %(choices)s, default: %(default)s). "
+                         "Passing no arguments sets it to DEBUG ")
     ap.add_argument('--version', action='version', version='%%(prog)s %s' % __version__)
     ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
     args = ap.parse_args(args)
 
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+    logging.basicConfig(level=args.verbosity,
                         format="%(levelname)s: %(message)s")
 
     if args.patterns and args.pattern_file:
