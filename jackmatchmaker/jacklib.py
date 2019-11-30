@@ -458,7 +458,6 @@ def is_realtime(client):
 # -------------------------------------------------------------------------------------------------
 # Non-Callback API
 
-global _thread_callback
 _thread_callback = None
 
 try:
@@ -504,27 +503,12 @@ def set_process_thread(client, thread_callback, arg):
 # -------------------------------------------------------------------------------------------------
 # Client Callbacks
 
-global _thread_init_callback
-global _shutdown_callback
-global _info_shutdown_callback
-global _process_callback
-global _freewheel_callback
-global _bufsize_callback
-global _srate_callback
-global _client_registration_callback
-global _client_rename_callback
-global _port_registration_callback
-global _port_connect_callback
-global _port_rename_callback
-global _graph_callback
-global _xrun_callback
-global _latency_callback
-
 _thread_init_callback = _shutdown_callback = _info_shutdown_callback = None
 _process_callback = _freewheel_callback = _bufsize_callback = _srate_callback = None
 _client_registration_callback = _client_rename_callback = None
 _port_registration_callback = _port_connect_callback = _port_rename_callback = None
 _graph_callback = _xrun_callback = _latency_callback = None
+_property_change_callback = None
 
 try:
     jlib.jack_set_thread_init_callback.argtypes = [
@@ -1663,9 +1647,6 @@ def custom_set_data_appearance_callback(client, custom_callback, arg):
 
 # -------------------------------------------------------------------------------------------------
 # Meta data
-
-global _property_change_callback
-_property_change_callback = None
 
 Property = namedtuple('Property', ('key', 'value', 'type'))
 
