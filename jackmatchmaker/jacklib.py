@@ -1763,11 +1763,11 @@ def get_properties(subject, encoding=ENCODING):
     return results
 
 
-def get_client_properties(client, clientuuid, encoding=ENCODING):
-    if isinstance(clientuuid, str):
-        clientuuid = get_uuid_for_client_name(client, clientuuid)
+def get_client_properties(client, client_uuid, encoding=ENCODING):
+    if isinstance(client_uuid, str):
+        client_uuid = get_uuid_for_client_name(client, client_uuid)
 
-    return get_properties(uuid_parse(clientuuid), encoding)
+    return get_properties(uuid_parse(client_uuid), encoding)
 
 
 def get_port_properties(client, port, encoding=ENCODING):
@@ -1814,11 +1814,11 @@ def get_property(subject, key, encoding=ENCODING):
         return Property(key, value, type_)
 
 
-def get_client_property(client, clientuuid, key, encoding=ENCODING):
-    if isinstance(clientuuid, str):
-        clientuuid = get_uuid_for_client_name(client, clientuuid)
+def get_client_property(client, client_uuid, key, encoding=ENCODING):
+    if isinstance(client_uuid, str):
+        client_uuid = get_uuid_for_client_name(client, client_uuid)
 
-    return get_property(uuid_parse(clientuuid), key, encoding)
+    return get_property(uuid_parse(client_uuid), key, encoding)
 
 
 def get_port_property(client, port, key, encoding=ENCODING):
@@ -1841,11 +1841,11 @@ def remove_properties(client, subject):
     return jlib.jack_remove_property(client, subject)
 
 
-def remove_client_properties(client, clientuuid):
-    if isinstance(clientuuid, str):
-        clientuuid = get_uuid_for_client_name(client, clientuuid)
+def remove_client_properties(client, client_uuid):
+    if isinstance(client_uuid, str):
+        client_uuid = get_uuid_for_client_name(client, client_uuid)
 
-    return remove_properties(client, uuid_parse(clientuuid))
+    return remove_properties(client, uuid_parse(client_uuid))
 
 
 def remove_port_properties(client, port):
@@ -1859,11 +1859,11 @@ def remove_property(client, subject, key, encoding=ENCODING):
     return jlib.jack_remove_property(client, subject, _e(key, encoding))
 
 
-def remove_client_property(client, port, key, encoding=ENCODING):
-    if isinstance(clientuuid, str):
-        clientuuid = get_uuid_for_client_name(client, clientuuid)
+def remove_client_property(client, client_uuid, key, encoding=ENCODING):
+    if isinstance(client_uuid, str):
+        client_uuid = get_uuid_for_client_name(client, client_uuid)
 
-    return remove_property(client, uuid_parse(clientuuid), key, encoding)
+    return remove_property(client, uuid_parse(client_uuid), key, encoding)
 
 
 def remove_port_property(client, port, key, encoding=ENCODING):
@@ -1883,11 +1883,11 @@ def set_property(client, subject, key, value, type=None, encoding=ENCODING):
     return jlib.jack_set_property(client, subject, _e(key, encoding), value, type)
 
 
-def set_client_property(client, clientuuid, key, value, type=None, encoding=ENCODING):
-    if isinstance(clientuuid, str):
-        clientuuid = get_uuid_for_client_name(client, clientuuid)
+def set_client_property(client, client_uuid, key, value, type=None, encoding=ENCODING):
+    if isinstance(client_uuid, str):
+        client_uuid = get_uuid_for_client_name(client, client_uuid)
 
-    uuid = uuid_parse(clientuuid)
+    uuid = uuid_parse(client_uuid)
     return set_property(client, uuid, key, value, type, encoding) if uuid != -1 else -1
 
 
