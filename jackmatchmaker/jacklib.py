@@ -186,8 +186,8 @@ JackPositionTimecode = 0x20
 JackBBTFrameOffset = 0x40
 JackAudioVideoRatio = 0x80
 JackVideoFrameOffset = 0x100
-JACK_POSITION_MASK = (JackPositionBBT | JackPositionTimecode | JackBBTFrameOffset |
-                      JackAudioVideoRatio | JackVideoFrameOffset)
+JACK_POSITION_MASK = (JackPositionBBT | JackPositionTimecode | JackBBTFrameOffset
+                      | JackAudioVideoRatio | JackVideoFrameOffset)
 
 # enum JackSessionEventType
 JackSessionSave = 1

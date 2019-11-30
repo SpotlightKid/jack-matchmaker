@@ -72,7 +72,7 @@ class JackMatchmaker(object):
         if self.pattern_file:
             try:
                 self.add_patterns_from_file(self.pattern_file)
-            except OSError as exc:
+            except OSError:
                 log.error("Could not read pattern file '%s'.", self.pattern_file)
                 raise
 
@@ -206,8 +206,8 @@ class JackMatchmaker(object):
                     else:
                         ptn_input_xformed = ptn_input
 
-                    if not self.exact_matching or (ptn_input_xformed.startswith('/') and
-                                                   ptn_input_xformed.endswith('/')):
+                    if not self.exact_matching or (ptn_input_xformed.startswith('/')
+                                                   and ptn_input_xformed.endswith('/')):
                         try:
                             ptn_input_xformed = re.compile(ptn_input_xformed.strip('/'))
                         except re.error as exc:
