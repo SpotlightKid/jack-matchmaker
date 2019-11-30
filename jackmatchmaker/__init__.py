@@ -70,7 +70,11 @@ class JackMatchmaker(object):
         self.default_encoding = jacklib.ENCODING
 
         if self.pattern_file:
-            self.add_patterns_from_file(self.pattern_file)
+            try:
+                self.add_patterns_from_file(self.pattern_file)
+            except OSError as exc:
+                log.error("Could not read pattern file '%s'.", self.pattern_file)
+                raise
 
             if not sys.platform.startswith('win'):
                 signal.signal(signal.SIGHUP, self.reread_pattern_file)
@@ -139,8 +143,8 @@ class JackMatchmaker(object):
 
         try:
             self.add_patterns_from_file(self.pattern_file)
-        except (IOError, OSError) as exc:
-            log.error("Could not read '%s': %s", self.pattern_file, exc)
+        except OSError as exc:
+            log.error("Could not read pattern file '%s': %s", self.pattern_file, exc)
         else:
             self._refresh()
 
@@ -376,7 +380,7 @@ def main(args=None):
                                         name=args.client_name, exact_matching=args.exact_matching,
                                         connect_interval=args.connect_interval,
                                         connect_maxattempts=args.max_attempts)
-        except RuntimeError as exc:
+        except (OSError, RuntimeError) as exc:
             return str(exc)
     else:
         ap.print_help()
