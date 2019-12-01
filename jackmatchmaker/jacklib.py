@@ -1270,8 +1270,6 @@ def free(ptr):
 # -------------------------------------------------------------------------------------------------
 # Transport
 
-global _sync_callback
-global _timebase_callback
 _sync_callback = _timebase_callback = None
 
 jlib.jack_release_timebase.argtypes = [POINTER(jack_client_t)]
@@ -1415,7 +1413,6 @@ def midi_get_lost_event_count(port_buffer):
 # -------------------------------------------------------------------------------------------------
 # Session
 
-global _session_callback
 _session_callback = None
 
 try:
@@ -1574,7 +1571,6 @@ def uuid_parse(uuid_cstr):
 # -------------------------------------------------------------------------------------------------
 # Custom
 
-global _custom_appearance_callback
 _custom_appearance_callback = None
 
 try:
