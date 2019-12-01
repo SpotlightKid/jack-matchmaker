@@ -318,6 +318,7 @@ JackCustomDataAppearanceCallback = CFUNCTYPE(None, c_char_p, c_char_p, jack_cust
                                              c_void_p)
 JackPropertyChangeCallback = CFUNCTYPE(None, jack_uuid_t, c_char_p, jack_property_change_t,
                                        c_void_p)
+JackErrorCallback = CFUNCTYPE(None, c_char_p)
 
 # -------------------------------------------------------------------------------------------------
 # Functions
@@ -1243,8 +1244,23 @@ def get_time():
 # -------------------------------------------------------------------------------------------------
 # Misc
 
+_error_callback = None
+
 jlib.jack_free.argtypes = [c_void_p]
 jlib.jack_free.restype = None
+
+try:
+    jlib.jack_set_error_function.argtypes = [JackErrorCallback]
+    jlib.jack_set_error_function.restype = None
+except AttributeError:
+    jlib.jack_set_error_function = None
+
+
+def set_error_function(error_callback):
+    global _error_callback
+    if jlib.jack_set_error_function:
+        _error_callback = JackErrorCallback(error_callback)
+        jlib.jack_set_error_function(_error_callback)
 
 
 def free(ptr):

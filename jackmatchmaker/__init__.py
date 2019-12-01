@@ -69,6 +69,8 @@ class JackMatchmaker(object):
         self.connect_interval = connect_interval
         self.default_encoding = jacklib.ENCODING
 
+        jacklib.set_error_function(self.error_callback)
+
         if self.pattern_file:
             try:
                 self.add_patterns_from_file(self.pattern_file)
@@ -172,6 +174,10 @@ class JackMatchmaker(object):
         port = jacklib.port_by_id(self.client, port_id)
         log.debug("New port registered: %s", jacklib.port_name(port))
         self._refresh()
+
+    def error_callback(self, error):
+        error = error.decode(self.default_encoding, errors='ignore')
+        log.debug(error)
 
     def _refresh(self):
         inputs = list(flatten(self.get_ports(jacklib.JackPortIsInput)))
