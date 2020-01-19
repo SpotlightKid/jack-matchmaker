@@ -268,7 +268,7 @@ Please see the file ``LICENSE`` for more information.
 Author
 ------
 
-``jack-matchmaker`` was written by Christopher Arndt 2016 - 2019.
+``jack-matchmaker`` was written by Christopher Arndt 2016 - 2020.
 
 
 Acknowledgements
