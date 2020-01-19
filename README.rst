@@ -69,6 +69,9 @@ Usage
 Run ``jack-matchmaker -h`` (or ``--help``) to show help on the available
 command line options.
 
+See also the section ""Systemd service" below on how to use ``jack-matchmaker``
+as a systemd user service.
+
 
 Examples
 ~~~~~~~~
@@ -219,6 +222,31 @@ connection loop described above again.
 To disconnect from the JACK server and stop ``jack-matchmaker``, send an INT
 signal to the process, usually done by pressing Control-C in the terminal
 where ``jack-matchmaker`` is running.
+
+
+
+Systemd service
+---------------
+
+You can optionally install ``jack-matchmaker`` as a systemd user service:
+
+.. code-block:: shell-session
+
+    $ install -Dm644 systemd/jack-matchmaker.conf /etc/conf.d/jack-matchmaker
+    $ install -Dm644 systemd/jack-matchmaker.service -t /usr/lib/systemd/user
+
+To start the service edit ``/etc/conf.d/jack-matchmaker`` according to your
+needs and then start the service with:
+
+.. code-block:: shell-session
+
+    systemctl --user start jack-matchmaker
+
+To stop it again:
+
+.. code-block:: shell-session
+
+    systemctl --user stop jack-matchmaker
 
 
 Requirements
