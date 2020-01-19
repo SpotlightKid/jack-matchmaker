@@ -5,6 +5,29 @@ For details and minor changes, please see the `version control log messages
 <https://github.com/SpotlightKid/jack-matchmaker/commits/master>`_.
 
 
+2020-01-19 version 0.8.0
+------------------------
+
+Changes:
+
+* Removed Python 3.4 support, added 3.8.
+
+Enhancements:
+
+* Added optional systemd unit along with environment file (thanks to
+  Térence Clastres).
+* Added Arch Linux ``PKGBUILD`` file.
+* Added ``--verbosity`` command line option for setting a
+  specific log level (thanks to Térence Clastres).
+
+Fixes:
+
+* Added graceful handling of ``Ctrl-C`` when connecting.
+* Added handling of error reading pattern file on startup.
+* Changed ``__main__.py`` to import from the package it is in.
+* Fixed wrong argument name of ``jacklib.remove_client_property``.
+
+
 2019-05-13 version 0.7.1
 ------------------------
 
