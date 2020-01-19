@@ -10,7 +10,7 @@ license=('GPL2')
 depends=('python-setuptools' 'jack')
 source=("https://files.pythonhosted.org/packages/source/j/${pkgname}/${pkgname}-${pkgver}.tar.gz")
 backup=('etc/conf.d/jack-matchmaker')
-sha256sums=('a5353922d9e966701ea4f14e8b4e055143b7a6a70339ea86eb1b6433d23a7dd8')
+sha256sums=('f763290d485c50c06182e40ddc245ae9b261285b3c21ecb9a4faa5307cb5')
 
 build() {
   cd "${srcdir}/${pkgname}-${pkgver}"
