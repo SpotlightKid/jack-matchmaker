@@ -235,18 +235,65 @@ You can optionally install ``jack-matchmaker`` as a systemd user service:
     $ install -Dm644 systemd/jack-matchmaker.conf /etc/conf.d/jack-matchmaker
     $ install -Dm644 systemd/jack-matchmaker.service -t /usr/lib/systemd/user
 
-To start the service edit ``/etc/conf.d/jack-matchmaker`` according to your
-needs and then start the service with:
+To start the service, edit ``/etc/conf.d/jack-matchmaker`` according to your
+needs (see section "Environment file" below) and then start the service with:
 
 .. code-block:: shell-session
 
-    systemctl --user start jack-matchmaker
+    $ systemctl --user start jack-matchmaker
 
 To stop it again:
 
 .. code-block:: shell-session
 
-    systemctl --user stop jack-matchmaker
+    $ systemctl --user stop jack-matchmaker
+
+
+Environment file
+~~~~~~~~~~~~~~~~
+
+The ``jack-matchmaker`` systemd user service reads an environment file, which
+is expected to be located at ``/etc/conf.d/jack-matchmaker``. In this file, you
+can set the following service startup settings as environment variables:
+
+``PATTERN_FILE`` (default: ``"/etc/jack-matchmaker/patterns.txt"``)
+
+A file with port pattern pairs to read at startup as described above in section
+"Pattern files".
+
+``PATTERNS``
+
+A space-separated list of port patterns in pairs of two. The default list is
+empty and it is recommened to use ``PATTERN_FILE`` instead when running
+``jack-matchmaker`` as a systemd service, unless the patterns should remain
+static and never change.
+
+``CLIENT_NAME`` (default: ``"jack-matchmaker"``)
+
+Set the JACK client name used by ``jack-matchnmaker`` to the given value.
+
+``CONNECT_INTERVAL`` (default: ``3``)
+
+Set interval in seconds between attempts to connect to JACK server to the
+given numeric value.
+
+``EXACT_MATCHING``
+
+Enable literal matching mode. Patterns must match port names exactly. To still
+use regular expressions, surround a port pattern with forward slashes, e.g.
+``"/system:out_\d+/"``.
+
+Set ``EXACT_MATCHING`` to any value to enable it.
+
+``MAX_ATTEMPTS`` (default: ``0``)
+
+Set the aximum number of attempts to connect to JACK server before giving up.
+The default value ``0`` means to keep on trying until interrupted.
+
+``VERBOSITY`` (default: ``INFO``)
+
+Set output verbosity level. Choices are: ``DEBUG``, ``INFO``, ``WARNING``,
+and ``ERROR``.
 
 
 Requirements
