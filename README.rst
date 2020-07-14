@@ -341,7 +341,7 @@ package on popular Linux distributions.
 .. _cadence: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
 .. _jack-autoconnect: https://github.com/kripton/jack_autoconnect
 .. _jack: http://jackaudio.org/
-.. _jack-plumbing: http://rd.slavepianos.org/sw/rju/md/jack-plumbing.md
+.. _jack-plumbing: http://rohandrape.net/?t=rju&e=md/jack-plumbing.md
 .. _jack-tools: https://packages.ubuntu.com/search?keywords=jack-tools&searchon=names&suite=all&section=all
 .. _pretty-names: https://github.com/jackaudio/jackaudio.github.com/wiki/JACK-Metadata-API
 .. _python regular expressions: https://docs.python.org/3/library/re.html#regular-expression-syntax
