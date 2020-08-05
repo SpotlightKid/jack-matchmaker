@@ -121,8 +121,15 @@ class JackMatchmaker(object):
             log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
             time.sleep(self.connect_interval)
 
+        name = jacklib.get_client_name(self.client)
+        if name is not None:
+            self.client_name = name.decode()
+        else:
+            raise RuntimeError("Could not get JACK client name.")
+
         jacklib.on_shutdown(self.client, self.shutdown_callback, None)
-        log.debug("Client connected, UUID: %s", jacklib.client_get_uuid(self.client))
+        log.debug("Client connected, name: %s UUID: %s", self.client_name,
+                  jacklib.client_get_uuid(self.client))
 
     def close(self):
         if self.client:
