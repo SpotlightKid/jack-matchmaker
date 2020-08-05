@@ -96,9 +96,17 @@ class JackMatchmaker(object):
             log.debug("Attempting to connect to JACK server...")
             status = jacklib.jack_status_t()
             self.client = jacklib.client_open(self.client_name, jacklib.JackNoStartServer, status)
-            err = get_jack_status_error_string(status)
 
-            if not err:
+            if status.value:
+                err = get_jack_status_error_string(status)
+                if (status.value & jacklib.JackNameNotUnique or
+                    status.value & jacklib.JacKServerStarted
+                ):
+                    log.debug(err)
+                    break
+                else:
+                    log.warning(err)
+            else:
                 break
 
             tries += 1
