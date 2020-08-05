@@ -5,6 +5,16 @@ For details and minor changes, please see the `version control log messages
 <https://github.com/SpotlightKid/jack-matchmaker/commits/master>`_.
 
 
+2020-08-05 version 0.8.1
+------------------------
+
+Fixes:
+
+* Fixed not connecting to JACK when an instance of jack-matchmaker was already
+  running and no unique JACK cleint name set (#11, thanks to Nils Hilbricht
+  reporting).
+
+
 2020-01-19 version 0.8.0
 ------------------------
 
