@@ -430,7 +430,10 @@ def main(args=None):
     except KeyboardInterrupt:
         print('')
     except Exception as exc:
-        log.exception("Startup error")
+        if args.verbosity == 'DEBUG':
+            log.exception("Startup error")
+        else:
+            log.error("Startup error: %s", exc)
         return str(exc)
     finally:
         matchmaker.close()
