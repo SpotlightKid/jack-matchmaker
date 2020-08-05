@@ -60,12 +60,12 @@ def posnum(arg):
 
 class JackMatchmaker(object):
     def __init__(self, patterns, pattern_file=None, name=__program__, exact_matching=False,
-                 connect_interval=3.0, connect_maxattempts=0):
+                 connect_interval=3.0, connect_max_attempts=0):
         self.patterns = []
         self.pattern_file = pattern_file
         self.client_name = name
         self.exact_matching = exact_matching
-        self.connect_maxattempts = connect_maxattempts
+        self.connect_max_attempts = connect_max_attempts
         self.connect_interval = connect_interval
         self.default_encoding = jacklib.ENCODING
 
@@ -90,12 +90,16 @@ class JackMatchmaker(object):
         self.queue = queue.Queue()
         self.client = None
 
-    def connect(self):
+    def connect(self, max_attempts=None):
+        if max_attempts is None:
+            max_attempts = self.connect_max_attempts
+
         tries = 0
         while True:
             log.debug("Attempting to connect to JACK server...")
             status = jacklib.jack_status_t()
             self.client = jacklib.client_open(self.client_name, jacklib.JackNoStartServer, status)
+            tries += 1
 
             if status.value:
                 err = get_jack_status_error_string(status)
@@ -109,10 +113,9 @@ class JackMatchmaker(object):
             else:
                 break
 
-            tries += 1
-            if self.connect_maxattempts and tries >= self.connect_maxattempts:
+            if max_attempts and tries >= max_attempts:
                 log.error("Maximum number (%i) of connection attempts reached. Aborting.",
-                          self.connect_maxattempts)
+                          max_attempts)
                 raise RuntimeError(err)
 
             log.debug("Waiting %.2f seconds to connect again...", self.connect_interval)
@@ -355,10 +358,10 @@ def main(args=None):
     apg = ap.add_argument_group('actions', 'Listing ports and connections')
     apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
                      const="list_cnx", help="List all connections between JACK ports")
-    apg.add_argument('-o', '--list-outputs', dest="actions", action="append_const",
-                     const="list_outs", help="List all JACK output ports")
     apg.add_argument('-i', '--list-inputs', dest="actions", action="append_const",
                      const="list_ins", help="List all JACK input ports")
+    apg.add_argument('-o', '--list-outputs', dest="actions", action="append_const",
+                     const="list_outs", help="List all JACK output ports")
     apg.add_argument('-a', '--aliases', action="store_true",
                      help="Include aliases when listing ports")
     apg.add_argument('-n', '--pretty-names', action="store_true",
@@ -375,7 +378,8 @@ def main(args=None):
                     help="Interval between attempts to connect to JACK server "
                     " (default: %(default)s)")
     ap.add_argument('-m', '--max-attempts', type=posnum, default=0, metavar="NUM",
-                    help="Max. number of attempts to connect to JACK server (default: 0=infinite)")
+                    help="Max. number of attempts to connect to JACK server (default: 0=infinite)."
+                          " Always 1 when any of the -c, -i or -o options are used.")
     ap.add_argument('-v', '--verbosity', nargs='?', metavar="LEVEL",
                     choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], const='DEBUG', default='INFO',
                     help="Set verbosity level (choices: %(choices)s, default: %(default)s). "
@@ -395,7 +399,7 @@ def main(args=None):
             matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file,
                                         name=args.client_name, exact_matching=args.exact_matching,
                                         connect_interval=args.connect_interval,
-                                        connect_maxattempts=args.max_attempts)
+                                        connect_max_attempts=args.max_attempts)
         except (OSError, RuntimeError) as exc:
             return str(exc)
     else:
@@ -404,7 +408,7 @@ def main(args=None):
 
     try:
         if args.actions:
-            matchmaker.connect()
+            matchmaker.connect(max_attempts=1)
 
             if 'list_outs' in args.actions:
                 matchmaker.list_ports(jacklib.JackPortIsOutput, include_aliases=args.aliases,
