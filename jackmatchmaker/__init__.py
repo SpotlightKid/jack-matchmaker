@@ -103,14 +103,15 @@ class JackMatchmaker(object):
 
             if status.value:
                 err = get_jack_status_error_string(status)
-                if (status.value & jacklib.JackNameNotUnique or
-                    status.value & jacklib.JacKServerStarted
-                ):
+                if status.value & jacklib.JackNameNotUnique:
                     log.debug(err)
-                    break
+                elif status.value & jacklib.JackServerStarted:
+                    # Should not happen, since we use the JackNoStartServer option
+                    log.warning("Unexpected JACK status: %s", err)
                 else:
-                    log.warning(err)
-            else:
+                    log.warning("JACK connection error (attempt %i): %s", tries, err)
+
+            if self.client:
                 break
 
             if max_attempts and tries >= max_attempts:
