@@ -197,11 +197,27 @@ Example file:
     .*:Out R
         system:playback_2
 
+
+Easy pattern file creation
+``````````````````````````
+
+Set up your JACK connections using GUI tools like ``QJackCtl`` or ``Carla``
+first. Then use ``jack-matchmaker -c > patterns`` to save a the current JACK
+connections in the file ``patterns`` in a *pattern file compatible* format.
+You may then edit this file and and delete or add pattern pairs as needed.
+
+
+Reloading the pattern file
+``````````````````````````
+
 When you send a HUP signal to a running ``jack-matchmaker`` process, the file
 that was specified on the command line when the process was started is re-read
 and the resulting patterns replace *all* previously used patterns (including
 those listed as positional command line arguments!). If there should be an
 error reading the file, the pattern list will then be empty.
+
+On systemd you can use ``systemctl --user reload jack-matchmaker`` to reload
+the pattern file.
 
 
 JACK server connection
@@ -247,6 +263,12 @@ To stop it again:
 .. code-block:: shell-session
 
     $ systemctl --user stop jack-matchmaker
+
+To reload the pattern file:
+
+.. code-block:: shell-session
+
+    $ systemctl --user reload jack-matchmaker
 
 
 Environment file

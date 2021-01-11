@@ -3,6 +3,7 @@ Description=auto-connect JACK ports matching given patterns
 
 [Service]
 EnvironmentFile=/etc/conf.d/jack-matchmaker
+ExecReload=kill -HUP $MAINPID
 ExecStart=/bin/bash -c '/usr/bin/jack-matchmaker $${PATTERN_FILE+-p "$PATTERN_FILE"} $${EXACT_MATCHING:+-e} $${CLIENT_NAME+-N "$CLIENT_NAME"} $${CONNECT_INTERVAL+-I $CONNECT_INTERVAL} $${MAX_ATTEMPTS+-m $MAX_ATTEMPTS} $${VERBOSITY+-v $VERBOSITY} $$PATTERNS'
 
 [Install]
