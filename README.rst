@@ -135,8 +135,8 @@ slashes, e.g. like so:
 
     $ jack-matchmaker -e system:capture_1 '/myclient:in_l_\d+/'
 
-All this applies to pattern given as positional command line arguments *and* to
-patterns listed in a pattern file (see below).
+All this applies to patterns given as positional command line arguments *and*
+to patterns listed in a pattern file (see below).
 
 
 Pattern match group substitution
@@ -240,7 +240,6 @@ signal to the process, usually done by pressing Control-C in the terminal
 where ``jack-matchmaker`` is running.
 
 
-
 Systemd service
 ---------------
 
@@ -296,7 +295,7 @@ Set the JACK client name used by ``jack-matchnmaker`` to the given value.
 
 ``CONNECT_INTERVAL`` (default: ``3``)
 
-Set interval in seconds between attempts to connect to JACK server to the
+Set the interval in seconds between attempts to connect to JACK server to the
 given numeric value.
 
 ``EXACT_MATCHING``
@@ -309,7 +308,7 @@ Set ``EXACT_MATCHING`` to any value to enable it.
 
 ``MAX_ATTEMPTS`` (default: ``0``)
 
-Set the aximum number of attempts to connect to JACK server before giving up.
+Set the maximum number of attempts to connect to JACK server before giving up.
 The default value ``0`` means to keep on trying until interrupted.
 
 ``VERBOSITY`` (default: ``INFO``)
