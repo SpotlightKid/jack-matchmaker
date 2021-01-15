@@ -5,18 +5,32 @@ For details and minor changes, please see the `version control log messages
 <https://github.com/SpotlightKid/jack-matchmaker/commits/master>`_.
 
 
+2021-01-15 version 0.9.0
+------------------------
+
+Changes:
+
+* Dropped official support for Python 3.5 and declared support for Python 3.9.
+  Incremented the minor version accordingly.
+
+Enhancement:
+
+* Added support for the ``reload`` action to the jack-matchmaker systemd
+  service, which triggers re-reading of the pattern file (thanks to BlueMax).
+
+
 2020-08-05 version 0.8.2
 ------------------------
 
 Changes:
 
-* Max. connection attempt is always set to 1 when any of the `-c`, `-i` or `-o`
-  options are used.
+* Max. connection attempt is always set to 1 when any of the ``-c``, ``-i`` or
+  ``-o`` options are used.
 
 Enhancement:
 
-* Log JACK client name after connection (if verbosity is `DEBUG`).
-* Only log connection error traceback when verbosity is `DEBUG`.
+* Log JACK client name after connection (if verbosity is ``DEBUG``).
+* Only log connection error traceback when verbosity is ``DEBUG``.
 * Improve warning logging of non-fatal connection error status.
 
 Fixes:
