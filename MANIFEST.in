@@ -5,3 +5,4 @@ include systemd/jack-matchmaker.conf
 include systemd/jack-matchmaker.service
 
 prune jacklib-examples
+prune packaging
