@@ -210,6 +210,22 @@ first. Then use ``jack-matchmaker -c > patterns`` to save a the current JACK
 connections in the file ``patterns`` in a *pattern file compatible* format.
 You may then edit this file and and delete or add pattern pairs as needed.
 
+When using the ``-c`` option, you can also optionally give one or more regular
+expression patterns as positional arguments on the command line. In that case
+only connections, where any of the given patterns is matching (part of) either
+the output or input port names, are listed. If the patterns contain any
+uppercase letters, they will be matched in a case-sensitive fashion, if not,
+they will be matched case-insensitively. The patterns are matched against the
+full port name, including the client name. For example:
+
+.. code-block:: shell-session
+
+    $ jack-matchmaker -c JACK
+
+This would list connections, where one of the connected ports contains "JACK"
+in its name, but not if it contained only "jack" or "Jack" (unless matched by
+another pattern).
+
 
 Reloading the pattern file
 ``````````````````````````

@@ -309,9 +309,21 @@ class JackMatchmaker(object):
                 for other in jacklib.port_get_all_connections(self.client, port):
                     yield((port_name, other))
 
-    def list_connections(self):
+    def list_connections(self, patterns):
         for outport, inport in self.get_connections():
-            print("%s\n    %s\n" % (outport, inport))
+            if patterns:
+                match = False
+                for ptn in patterns:
+                    flags = re.I if ptn.lower() == ptn else 0
+
+                    if re.search(ptn, outport, flags) or re.search(ptn, inport, flags):
+                        match = True
+                        break
+            else:
+                match = True
+
+            if match:
+                print("%s\n    %s\n" % (outport, inport))
 
     def list_ports(self, type_=jacklib.JackPortIsOutput, include_aliases=True,
                    include_pretty_names=True):
@@ -365,7 +377,8 @@ def main(args=None):
     ap = argparse.ArgumentParser(prog=__program__, description=__doc__.splitlines()[0])
     apg = ap.add_argument_group('actions', 'Listing ports and connections')
     apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
-                     const="list_cnx", help="List all connections between JACK ports")
+                     const="list_cnx", help="List all connections between JACK ports "
+                     "(optionally with pattern matching)")
     apg.add_argument('-i', '--list-inputs', dest="actions", action="append_const",
                      const="list_ins", help="List all JACK input ports")
     apg.add_argument('-o', '--list-outputs', dest="actions", action="append_const",
@@ -393,7 +406,7 @@ def main(args=None):
                     help="Set verbosity level (choices: %(choices)s, default: %(default)s). "
                          "Passing no arguments sets it to DEBUG.")
     ap.add_argument('--version', action='version', version='%%(prog)s %s' % __version__)
-    ap.add_argument('patterns', nargs='*', help="Port pattern pairs")
+    ap.add_argument('patterns', nargs='*', help="Port pattern (pairs)")
     args = ap.parse_args(args)
 
     logging.basicConfig(level=args.verbosity, format="%(levelname)s: %(message)s")
@@ -425,7 +438,7 @@ def main(args=None):
                 matchmaker.list_ports(jacklib.JackPortIsInput, include_aliases=args.aliases,
                                       include_pretty_names=args.pretty_names)
             if 'list_cnx' in args.actions:
-                matchmaker.list_connections()
+                matchmaker.list_connections(args.patterns)
         else:
             matchmaker.run()
     except KeyboardInterrupt:
