@@ -5,6 +5,15 @@ For details and minor changes, please see the `version control log messages
 <https://github.com/SpotlightKid/jack-matchmaker/commits/master>`_.
 
 
+2021-04-15 version 0.10.0
+-------------------------
+
+Enhancement:
+
+* Added support for filtering against port name patterns when listing
+  connections with option ``-c```.
+
+
 2021-01-15 version 0.9.0
 ------------------------
 
