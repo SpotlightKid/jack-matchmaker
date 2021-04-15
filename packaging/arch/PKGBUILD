@@ -11,7 +11,7 @@ depends=('jack')
 makedepends=('python-setuptools')
 source=("https://files.pythonhosted.org/packages/source/j/${pkgname}/${pkgname}-${pkgver}.tar.gz")
 backup=('etc/conf.d/jack-matchmaker')
-sha256sums=('deadbeef')
+sha256sums=('70b8f53b0c75e8351ccdad4bf37bee8b544643604e0db1938ed749a4c0fa6ba6')
 
 build() {
   cd "${srcdir}/${pkgname}-${pkgver}"
