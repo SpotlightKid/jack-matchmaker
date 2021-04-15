@@ -11,7 +11,7 @@ For details and minor changes, please see the `version control log messages
 Enhancement:
 
 * Added support for filtering against port name patterns when listing
-  connections with option ``-c```.
+  connections with option ``-c``.
 
 
 2021-01-15 version 0.9.0
