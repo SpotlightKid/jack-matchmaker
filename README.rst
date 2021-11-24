@@ -113,6 +113,14 @@ port pattern:
     $ jack-matchmaker \
         'system:midi_capture_(?P<num>\d+)$' 'mydaw:midi_in_track_{num}'
 
+Automatically connect all ports going to the system output to an FFmpeg
+recording instance as well:
+
+.. code-block:: shell-session
+
+    $ jack-matchmaker \
+        'system:playback_(?P<num>\d+)$' 'ffmpeg:input_{num}'
+
 
 Regular expression and exact matching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
