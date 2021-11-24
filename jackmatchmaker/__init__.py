@@ -203,7 +203,7 @@ class JackMatchmaker(object):
         outputs = list(flatten(self.get_ports(jacklib.JackPortIsOutput)))
 
         for ptn_output, ptn_input in self.patterns:
-            for output in outputs:
+            for output in chain(outputs, inputs):
                 if isinstance(output, tuple):
                     real_output, output = output
                 else:
@@ -254,8 +254,13 @@ class JackMatchmaker(object):
                             match_input = ptn_input_xformed == input
 
                         if match_input:
-                            log.debug("Found matching input port: %s", input)
-                            self.queue.put((real_output or output, real_input or input))
+                            if output in inputs:
+                                for _, out_input in self.get_connections([output]):
+                                    log.debug("Found output port matching input: %s", out_input)
+                                    self.queue.put((out_input, real_input or input))
+                            else:
+                                log.debug("Found matching input port: %s", input)
+                                self.queue.put((real_output or output, real_input or input))
 
     def shutdown_callback(self, *args):
         """
