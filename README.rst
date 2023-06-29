@@ -40,8 +40,13 @@ one of the port pattern pairs given on the command line at startup.
 The port name patterns are specified as pairs of positional arguments or read
 from a file (see below) and *by default* are always interpreted as `Python
 regular expressions`_, where the first pattern of a pair is matched against
-output (readable) ports and the second pattern of a pair is matched against
-input (writeable) ports. As many pattern pairs as needed can be given.
+both output (readable) ports and input (writeable) ports, and the second
+pattern of a pair is matched only against input ports. As many pattern pairs as
+needed can be given.
+
+If the first pattern matches an input port, all output
+ports connected to that input port will be connected to the input ports
+matching the second pattern.
 
 Patterns are matched against:
 
@@ -107,6 +112,14 @@ port pattern:
 
     $ jack-matchmaker \
         'system:midi_capture_(?P<num>\d+)$' 'mydaw:midi_in_track_{num}'
+
+Automatically connect all ports going to the system output to an FFmpeg
+recording instance as well:
+
+.. code-block:: shell-session
+
+    $ jack-matchmaker \
+        'system:playback_(?P<num>\d+)$' 'ffmpeg:input_{num}'
 
 
 Regular expression and exact matching
