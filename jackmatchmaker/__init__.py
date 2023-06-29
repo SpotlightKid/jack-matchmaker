@@ -210,13 +210,13 @@ class JackMatchmaker(object):
                     real_output = None
 
                 if isinstance(ptn_output, re.Pattern):
-                    log.debug("Match regex '%s' on output port '%s'.", ptn_output.pattern, output)
+                    log.debug("Match regex '%s' on source port '%s'.", ptn_output.pattern, output)
                     match_output = ptn_output.match(output)
                 else:
                     match_output = ptn_output == output
 
                 if match_output:
-                    log.debug("Found matching output port: %s", output)
+                    log.debug("Found matching source port: %s", output)
 
                     if isinstance(match_output, re.Match):
                         # try to fill-in groups matches from output port
@@ -254,13 +254,8 @@ class JackMatchmaker(object):
                             match_input = ptn_input_xformed == input
 
                         if match_input:
-                            if output in inputs:
-                                for _, out_input in self.get_connections([output]):
-                                    log.debug("Found output port matching input: %s", out_input)
-                                    self.queue.put((out_input, real_input or input))
-                            else:
-                                log.debug("Found matching input port: %s", input)
-                                self.queue.put((real_output or output, real_input or input))
+                            log.debug("Found matching input port: %s", input)
+                            self.queue.put((real_output or output, real_input or input))
 
     def shutdown_callback(self, *args):
         """
@@ -362,18 +357,36 @@ class JackMatchmaker(object):
                     try:
                         event = self.queue.get(timeout=1)
                     except queue.Empty:
-                        pass
-                    else:
-                        if event is None:
-                            break
-                        else:
-                            outport, inport = event
+                        continue
 
-                        if not jacklib.port_connected_to(self._get_port(outport), inport):
-                            log.info("Connecting ports '%s' --> '%s'.", outport, inport)
+                    if event is None:
+                        break
+                    else:
+                        (srcport, dstport) = event
+
+                    port = self._get_port(srcport)
+
+                    if not port:
+                        log.warning("Port vanished: %s", srcport)
+
+                    flags = jacklib.port_flags(port)
+
+                    if flags & jacklib.JackPortIsInput:
+                        to_connect = [(p, dstport) for _, p in self.get_connections([srcport])]
+                    else:
+                        to_connect = [(srcport, dstport)]
+
+                    for outport, inport in to_connect:
+                        port = self._get_port(outport)
+
+                        if not port:
+                            continue
+
+                        if not jacklib.port_connected_to(port, inport):
+                            log.info("Connecting ports: '%s' --> '%s'.", outport, inport)
                             jacklib.connect(self.client, outport, inport)
                         else:
-                            log.debug("Ports '%s' and '%s' already connected.", outport, inport)
+                            log.debug("Ports already connected: '%s' --> '%s'.", outport, inport)
             except KeyboardInterrupt:
                 return
 
