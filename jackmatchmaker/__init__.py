@@ -11,13 +11,14 @@ import sys
 import time
 
 from collections import defaultdict
-from functools import lru_cache
 from itertools import chain
 
 try:
     import queue
 except ImportError:
     import Queue as queue
+
+from cachetools import cached, TTLCache
 
 from . import jacklib
 from .jacklib_helpers import c_char_p_p_to_list, get_jack_status_error_string
@@ -30,6 +31,10 @@ PROPERTY_CHANGE_MAP = {
     jacklib.PropertyChanged: 'changed',
     jacklib.PropertyDeleted: 'deleted'
 }
+PORT_CACHE_MAXSIZE = 10
+PORT_CACHE_TTL = 10
+CONNECTION_CACHE_MAXSIZE = 1024
+CONNECTION_CACHE_TTL = 10
 log = logging.getLogger(__program__)
 
 if not hasattr(re, 'Pattern'):
@@ -87,6 +92,7 @@ class JackMatchmaker(object):
         for pair in patterns:
             self.add_patterns(*pair)
 
+        self.connection_cache = TTLCache(maxsize=CONNECTION_CACHE_MAXSIZE, ttl=CONNECTION_CACHE_TTL)
         self.queue = queue.Queue()
         self.client = None
 
@@ -186,6 +192,21 @@ class JackMatchmaker(object):
         log.debug("Port name %s changed to %s.", old_name, new_name)
         self._refresh()
 
+    def connect_callback(self, port_a_id, port_b_id, connect, *args):
+        if connect == 0:
+            return
+
+        port_a = jacklib.port_by_id(self.client, port_a_id)
+        port_b = jacklib.port_by_id(self.client, port_b_id)
+        port_a_name = jacklib.port_name(port_a)
+        port_b_name = jacklib.port_name(port_b)
+        log.debug("New port connection: '%s' -> '%s'", port_a_name, port_b_name)
+
+        if self.connection_cache.pop((port_a_name, port_b_name), False):
+            log.debug("Connection in cache. Skipping refresh.")
+        else:
+            self._refresh()
+
     def reg_callback(self, port_id, action, *args):
         if action == 0:
             return
@@ -265,7 +286,7 @@ class JackMatchmaker(object):
         self.client = None
         self.queue.put(None)
 
-    @lru_cache()
+    @cached(cache=TTLCache(maxsize=PORT_CACHE_MAXSIZE, ttl=PORT_CACHE_TTL))
     def _get_port(self, name):
         return jacklib.port_by_name(self.client, name)
 
@@ -305,7 +326,7 @@ class JackMatchmaker(object):
         for port_name in ports:
             port = jacklib.port_by_name(self.client, port_name)
 
-            if jacklib.port_connected(port):
+            if port and jacklib.port_connected(port):
                 for other in jacklib.port_get_all_connections(self.client, port):
                     yield((port_name, other))
 
@@ -347,6 +368,7 @@ class JackMatchmaker(object):
             try:
                 self.connect()
                 jacklib.set_port_registration_callback(self.client, self.reg_callback, None)
+                jacklib.set_port_connect_callback(self.client, self.connect_callback, None)
                 jacklib.set_port_rename_callback(self.client, self.rename_callback, None)
                 jacklib.set_property_change_callback(self.client, self.property_callback, None)
                 jacklib.activate(self.client)
@@ -384,6 +406,7 @@ class JackMatchmaker(object):
 
                         if not jacklib.port_connected_to(port, inport):
                             log.info("Connecting ports: '%s' --> '%s'.", outport, inport)
+                            self.connection_cache[(outport, inport)] = True
                             jacklib.connect(self.client, outport, inport)
                         else:
                             log.debug("Ports already connected: '%s' --> '%s'.", outport, inport)

@@ -16,6 +16,7 @@ setup(
     url="https://github.com/SpotlightKid/jack-matchmaker",
     license="GPL2",
     packages=["jackmatchmaker"],
+    install_requires=["cachetools"],
     entry_points={
         "console_scripts": [
             "jack-matchmaker = jackmatchmaker:main"
