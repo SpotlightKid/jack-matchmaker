@@ -3,29 +3,30 @@
 pkgname=jack-matchmaker
 pkgver=0.10.0
 pkgrel=1
-pkgdesc="A command line tool to auto-connect JACK ports matching given patterns."
-arch=('any')
-url="https://github.com/SpotlightKid/jack-matchmaker"
-license=('GPL2')
-depends=('jack')
-makedepends=('python-setuptools')
-source=("https://files.pythonhosted.org/packages/source/j/${pkgname}/${pkgname}-${pkgver}.tar.gz")
-backup=('etc/conf.d/jack-matchmaker')
-sha256sums=('70b8f53b0c75e8351ccdad4bf37bee8b544643604e0db1938ed749a4c0fa6ba6')
+pkgdesc='A command line tool to auto-connect JACK ports matching given patterns'
+arch=(any)
+url='https://github.com/SpotlightKid/jack-matchmaker'
+license=(GPL2)
+depends=(jack python-cachetools)
+makedepends=(python-build python-hatchling python-installer)
+source=("https://files.pythonhosted.org/packages/source/${pkgname::1}/$pkgname/${pkgname/-/_}-$pkgver.tar.gz")
+backup=("etc/conf.d/$pkgname")
+sha256sums=('<run updpkgsums to insert SHA256 check sum here>')
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-
-  python setup.py build
+  cd ${pkgname/-/_}-$pkgver
+  python -m build --wheel --no-isolation
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-
-  python setup.py install --skip-build --root="${pkgdir}" --prefix=/usr \
-    --optimize=1
-
+  cd ${pkgname/-/_}-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  # documentation
+  install -vDm 644 README.md example_patterns.txt \
+    -t "$pkgdir"/usr/share/doc/$pkgname
   # systemd service
-  install -Dm 644 systemd/jack-matchmaker.conf $pkgdir/etc/conf.d/jack-matchmaker
-  install -Dm 644 systemd/jack-matchmaker.service -t $pkgdir/usr/lib/systemd/user
+  install -vDm 644 systemd/$pkgname.conf \
+    "$pkgdir"/etc/conf.d/$pkgname
+  install -vDm 644 systemd/$pkgname.service \
+    -t "$pkgdir"/usr/lib/systemd/user
 }
