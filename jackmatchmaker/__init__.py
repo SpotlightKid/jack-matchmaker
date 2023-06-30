@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import queue
 import re
 import signal
 import sys
@@ -10,12 +11,11 @@ import time
 from collections import defaultdict
 from itertools import chain
 
-import queue
-
 from cachetools import cached, TTLCache
 
-from . import jacklib
-from .jacklib_helpers import c_char_p_p_to_list, get_jack_status_error_string
+import jacklib
+from jacklib.helpers import c_char_p_p_to_list, get_jack_status_error_string
+
 from .version import __version__
 
 
