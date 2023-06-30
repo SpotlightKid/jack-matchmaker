@@ -10,7 +10,8 @@ setup(
     name='jack-matchmaker',
     version=__version__,  # noqa
     description="Auto-connect new JACK ports.",
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     author="Christopher Arndt",
     author_email="info@chrisarndt.de",
     url="https://github.com/SpotlightKid/jack-matchmaker",
