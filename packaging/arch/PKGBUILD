@@ -1,7 +1,7 @@
 # Maintainer: Christopher Arndt <aur -at- chrisarndt -dot- de>
 
 pkgname=jack-matchmaker
-pkgver=0.10.0
+pkgver=0.11.0
 pkgrel=1
 pkgdesc='A command line tool to auto-connect JACK ports matching given patterns'
 arch=(any)
