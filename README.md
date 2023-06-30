@@ -320,10 +320,11 @@ Set output verbosity level. Choices are: `DEBUG`, `INFO`, `WARNING`, and
 
 ## Requirements
 
-- A version of Python 3 with a `ctypes` module (i.e. PyPy 3 works too).
+- A version of Python 3 with a `ctypes` module (i.e. PyPy 3 works too)
+- [pyjacklib]
 - [cachetools]
-- [JACK] version 1 or 2.
-- Linux, OS X (untested) or Windows (untested, no signal handling).
+- [JACK] version 1 or 2
+- Linux, OS X (untested) or Windows (untested, no signal handling)
 
 
 ## License
@@ -339,9 +340,10 @@ Please see the file `LICENSE` for more information.
 
 ## Acknowledgements
 
-`jack-matchmaker` is written in Python and incorporates the `jacklib` module
-taken from falkTX's [Cadence] application (but it was heavily modified and
-extended since).
+`jack-matchmaker` is written in Python and depends on the [pyjacklib] module,
+which was originally taken from falkTX's [Cadence] application but now turned
+into a stand-alone Python package and was heavily modified and extended in
+the process.
 
 It was inspired by [jack-autoconnect], which also auto-connects JACK ports, but
 doesn't support port aliases or meta data pretty-names. jack-autoconnect is
@@ -354,14 +356,14 @@ There is also a similar tool called `jack-plumbing`, part of the [jack-tools]
 package on popular Linux distributions.
 
 
-[JACK]: http://jackaudio.org/
-[Python regular expressions]: https://docs.python.org/3/library/re.html#regular-expression-syntax
-[pretty-names]: https://github.com/jackaudio/jackaudio.github.com/wiki/JACK-Metadata-API
 [AUR package]: https://aur.archlinux.org/packages/jack-matchmaker/
+[Cadence]: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
+[aj-snapshot]: https://aj-snapshot.sourceforge.net/
+[cachetools]: https://github.com/tkem/cachetools/
+[jack-autoconnect]: https://github.com/kripton/jack_autoconnect
+[JACK]: http://jackaudio.org/
+[jack-tools]: https://packages.ubuntu.com/search?keywords=jack-tools&searchon=names&suite=all&section=all
+[pretty-names]: https://github.com/jackaudio/jackaudio.github.com/wiki/JACK-Metadata-API
+[pyjacklib]: https://github.com/jackaudio/pyjacklib
 [Python regular expressions]: https://docs.python.org/3/library/re.html#regular-expression-syntax
 [Python string formatting]: https://docs.python.org/3/library/string.html#formatstrings
-[cachetools]: https://github.com/tkem/cachetools/
-[Cadence]: https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
-[jack-autoconnect]: https://github.com/kripton/jack_autoconnect
-[aj-snapshot]: https://aj-snapshot.sourceforge.net/
-[jack-tools]: https://packages.ubuntu.com/search?keywords=jack-tools&searchon=names&suite=all&section=all
