@@ -1,4 +1,42 @@
-"""Auto-connect new JACK ports matching the patterns given on the command line."""
+"""Auto-connect new JACK ports matching the patterns given on the command line.
+
+Examples:
+
+List all JACK input and output ports, including their aliases and pretty names:
+
+    jack-matchmaker -ioan
+
+List all existing connections between ports, or only those where at least one
+port matches one given PATTERN:
+
+     jack-matchmaker -c [PATTERN, ...]
+
+Auto-connect the ports 'left' and 'right' of JACK client 'fluidsynth' to the
+system audio playback ports using exact matching mode:
+
+    jack-matchmaker -e fluidsynth:left system:playback_1 fluidsynth:right system:playback_2
+
+Auto-connect all ports of client 'mixer' starting with 'l_' to
+'system:playback_1' and all starting with 'r_' to 'system:playback_2':
+
+    jack-matchmaker 'mixer:l_.*' system:playback_1 'mixer:r_.*' system:playback_2
+
+Auto-connect ports starting with 'midi' (case-insensitive) of any client to
+'midi-monitor:input':
+
+    jack-matchmaker '(?i).*:midi.*' midi-monitor:input
+
+Auto-connect system MIDI caspture ports to the respective 'midi_in_track_'
+ports of client 'mydaw' with the corresponding number suffix:
+
+    jack-matchmaker 'system:midi_capture_(?P<num>\d+)$' 'mydaw:midi_in_track_{num}'
+
+Read port patterns from file 'patterns.txt' and run in verbose mode:
+
+    jack-matchmaker -v -p patterns.txt
+
+See https://github.com/SpotlightKid/jack-matchmaker for more examples.
+"""
 
 import argparse
 import logging
@@ -403,7 +441,14 @@ class JackMatchmaker(object):
 
 
 def main(args=None):
-    ap = argparse.ArgumentParser(prog=__program__, description=__doc__.splitlines()[0])
+    doclines = __doc__.splitlines()
+    ap = argparse.ArgumentParser(
+        prog=__program__,
+        description=doclines[0],
+        epilog="\n".join(doclines[2:]),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    del doclines
     apg = ap.add_argument_group('actions', 'Listing ports and connections')
     apg.add_argument('-c', '--list-connections', dest="actions", action="append_const",
                      const="list_cnx", help="List all connections between JACK ports "
@@ -446,10 +491,14 @@ def main(args=None):
 
     if args.actions or args.patterns or args.pattern_file:
         try:
-            matchmaker = JackMatchmaker(pairwise(args.patterns), args.pattern_file,
-                                        name=args.client_name, exact_matching=args.exact_matching,
-                                        connect_interval=args.connect_interval,
-                                        connect_max_attempts=args.max_attempts)
+            matchmaker = JackMatchmaker(
+                pairwise(args.patterns),
+                args.pattern_file,
+                name=args.client_name,
+                exact_matching=args.exact_matching,
+                connect_interval=args.connect_interval,
+                connect_max_attempts=args.max_attempts
+            )
         except (OSError, RuntimeError) as exc:
             return str(exc)
     else:
@@ -477,6 +526,7 @@ def main(args=None):
             log.exception("Startup error")
         else:
             log.error("Startup error: %s", exc)
+
         return str(exc)
     finally:
         matchmaker.close()
