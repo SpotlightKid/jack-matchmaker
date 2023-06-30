@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Helper functions for extra jacklib functionality
 # Copyright (C) 2012-2013 Filipe Coelho <falktx@falktx.com>
@@ -18,8 +17,6 @@
 
 # -------------------------------------------------------------------------------------------------
 # Try Import jacklib
-
-from __future__ import absolute_import, print_function, unicode_literals
 
 from . import jacklib
 

@@ -1,8 +1,0 @@
-include CHANGELOG.rst
-include LICENSE
-include example_patterns.txt
-include systemd/jack-matchmaker.conf
-include systemd/jack-matchmaker.service
-
-prune jacklib-examples
-prune packaging
