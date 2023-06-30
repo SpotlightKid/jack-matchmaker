@@ -4,6 +4,33 @@ For details and minor changes, please see the [version control log
 messages](https://github.com/SpotlightKid/jack-matchmaker/commits/master).
 
 
+## 2023-06-30 version 0.11.0
+
+Changes:
+
+- Modernized project setup (#23).
+    - Converted to PEP-517 compliant build using [hatchling].
+    - Remove Python 2 compatibility code and syntax.
+    - Converted readme and changelog to markdown format.
+    - Updated Arch `PKGBUILD` file.
+    - Dropped official support for Python 3.6/3.7 and declared support for
+      Python 3.10/3.11. Incremented the minor version accordingly.
+- Replaced included `jacklib` module with dependency on [pyjacklib] (#24).
+- Added dependeny on [cachetools].
+
+Enhancements:
+
+- Add monitoring of input ports (#20, thanks to Peter Fabinski).
+- Evaluate connection patterns when new connections (not made by
+  jack-matchmaker) appear, allowing pattern pairs, where the first part matches
+  input ports, to trigger when new connections to these input ports are made
+  (#22).
+
+[cachetools]: https://github.com/tkem/cachetools/
+[hatchling]: https://hatch.pypa.io/
+[pyjacklib]: https://github.com/jackaudio/pyjacklib
+
+
 ## 2021-04-15 version 0.10.0
 
 Enhancement:
