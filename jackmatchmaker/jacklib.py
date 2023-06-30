@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # JACK ctypes definitions for usage in python applications
 # Copyright (C) 2010-2013 Filipe Coelho <falktx@falktx.com>
@@ -18,8 +17,6 @@
 
 # -------------------------------------------------------------------------------------------------
 # Imports (Global)
-
-from __future__ import absolute_import, print_function, unicode_literals
 
 from ctypes import (ARRAY, CFUNCTYPE, POINTER, Structure, byref, c_char_p, c_double, c_float,
                     c_int, c_int32, c_size_t, c_uint8, c_uint32, c_uint64, c_ulong, c_void_p, cdll,

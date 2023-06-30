@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 """Auto-connect new JACK ports matching the patterns given on the command line."""
-
-from __future__ import absolute_import, print_function, unicode_literals
 
 import argparse
 import logging
@@ -13,10 +10,7 @@ import time
 from collections import defaultdict
 from itertools import chain
 
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+import queue
 
 from cachetools import cached, TTLCache
 
@@ -36,12 +30,6 @@ PORT_CACHE_TTL = 10
 CONNECTION_CACHE_MAXSIZE = 1024
 CONNECTION_CACHE_TTL = 10
 log = logging.getLogger(__program__)
-
-if not hasattr(re, 'Pattern'):
-    re.Pattern = re._pattern_type
-
-if not hasattr(re, 'Match'):
-    re.Match = type(re.match('', ''))
 
 
 def pairwise(iterable):
